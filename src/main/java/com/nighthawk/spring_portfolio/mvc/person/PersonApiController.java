@@ -1,5 +1,6 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -78,7 +79,7 @@ public class PersonApiController {
     /*
     POST Aa record by Requesting Parameters from URI
      */
-    @PostMapping( "/post")
+    @PostMapping( "/createPerson")
     public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
                                              @RequestParam("password") String password,
                                              @RequestParam("name") String name,
@@ -151,5 +152,34 @@ public class PersonApiController {
         repository.save(person);
         return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
     }
+
+
+    /*
+     * POST Aa record by Requesting Parameters from URI
+     */
+    @PostMapping("/createAdmin")
+    public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
+                                             @RequestParam("password") String password,
+                                             @RequestParam("name") String name,
+                                             @RequestParam("dob") String dobString,
+                                             @RequestParam("admin_key") String adminKey) {
+        Date dob;
+        try {
+            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+        } catch (Exception e) {
+            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+        }
+
+        if (System.getenv("ADMIN_KEY") == adminKey) {
+            Person person = new Person(email, password, name, dob);
+            personDetailsService.save(person);
+            personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+            return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+        }
+
+        return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
+
+    }
+
 
 }
