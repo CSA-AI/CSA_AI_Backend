@@ -10,8 +10,8 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nighthawk.spring_portfolio.mvc.person.Person;
@@ -33,18 +33,21 @@ public class JwtApiController {
 	@PostMapping("/authenticate")
 	public ResponseEntity<?> createAuthenticationToken(@RequestBody Person authenticationRequest) throws Exception {
 		authenticate(authenticationRequest.getEmail(), authenticationRequest.getPassword());
-		final UserDetails userDetails = personDetailsService
-				.loadUserByUsername(authenticationRequest.getEmail());
+		final UserDetails userDetails = personDetailsService.loadUserByUsername(authenticationRequest.getEmail());
 		final String token = jwtTokenUtil.generateToken(userDetails);
+		
+		// Create a ResponseCookie
 		final ResponseCookie tokenCookie = ResponseCookie.from("jwt", token)
-			.httpOnly(true)
-			.secure(true)
-			.path("/")
-			.maxAge(3600)
-			.sameSite("None; Secure")
-			// .domain("example.com") // Set to backend domain
-			.build();
-		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, tokenCookie.toString()).build();
+				.httpOnly(true)
+				.secure(true)
+				.path("/")
+				.maxAge(3600)
+				.sameSite("None; Secure") // "None" does not require "Secure"
+				// .domain("example.com") // Set to backend domain
+				.build();
+		
+		// Add the cookie directly to the response
+		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, tokenCookie.toString()).body(new TokenResponse(token));
 	}
 
 	private void authenticate(String username, String password) throws Exception {
@@ -56,6 +59,18 @@ public class JwtApiController {
 			throw new Exception("INVALID_CREDENTIALS", e);
 		} catch (Exception e) {
 			throw new Exception(e);
+		}
+	}
+
+	public class TokenResponse {
+		private final String token;
+	
+		public TokenResponse(String token) {
+			this.token = token;
+		}
+	
+		public String getToken() {
+			return token;
 		}
 	}
 }

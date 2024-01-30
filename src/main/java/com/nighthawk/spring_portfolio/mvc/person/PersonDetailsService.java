@@ -43,6 +43,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
             authorities.add(new SimpleGrantedAuthority(role.getName())); //create a SimpleGrantedAuthority by passed in role, adding it all to the authorities list, list of roles gets past in for spring security
         });
         // train spring security to User and Authorities
+        authorities.add(new SimpleGrantedAuthority("USER_ID_" + person.getId()));
         return new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), authorities);
     }
 
