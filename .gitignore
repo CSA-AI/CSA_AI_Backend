@@ -36,3 +36,5 @@ build/
 
 ### Java build ###
 *.class
+
+*.env
