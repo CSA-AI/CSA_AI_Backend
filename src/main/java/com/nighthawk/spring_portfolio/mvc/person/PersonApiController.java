@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+
 
 @RestController
 @RequestMapping("/api/person")
@@ -64,16 +67,31 @@ public class PersonApiController {
     /*
     DELETE individual Person using ID
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Person> deletePerson(@PathVariable long id) {
-        Optional<Person> optional = repository.findById(id);
-        if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
-            repository.deleteById(id);  // value from findByID
-            return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
+    // OLD CODE - DAVID
+    // @DeleteMapping("/delete/{email}")
+    // public ResponseEntity<Person> deletePerson(@PathVariable String email) {
+    //     List<Person> persons = repository.findAllByOrderByEmailAsc(email);
+    //     if (!persons.isEmpty()) {  // Check if the list is not empty
+    //         Person person = persons.get(0);  // Get the first person from the list
+    //         repository.deleteByEmail(email);
+    //         return new ResponseEntity<>(person, HttpStatus.OK);
+    //     }
+    //     // Bad email
+    //     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    // }
+    
+    // NEW CODE - ADI
+    @Transactional
+    @DeleteMapping("/delete")
+    public ResponseEntity<Person> deletePerson(@RequestParam("email") String email) {
+        Person person = repository.findByEmail(email);
+        
+        if (person != null) {  // Check if the person is found
+            repository.deleteByEmail(email);
+            return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        // Bad ID
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
+        // Person with the given email not found
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /*
@@ -85,10 +103,11 @@ public class PersonApiController {
                                              @RequestParam("name") String name,
                                              @RequestParam("dob") String dobString) {
         Date dob;
+        System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
         try {
             dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
         } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(dobString +" error;" + e + "try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
         }
         // A person object WITHOUT ID will create a new record with default roles as student
         Person person = new Person(email, password, name, dob);

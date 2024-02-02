@@ -3,29 +3,28 @@ package com.nighthawk.spring_portfolio;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import com.nighthawk.spring_portfolio.mvc.jwt.JwtAuthenticationEntryPoint;
-import com.nighthawk.spring_portfolio.mvc.jwt.JwtRequestFilter;
-import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
+
+import com.nighthawk.spring_portfolio.mvc.jwt.JwtAuthenticationEntryPoint;
+import com.nighthawk.spring_portfolio.mvc.jwt.JwtRequestFilter;
+import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
 
 
 /*
@@ -74,9 +73,9 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				// list the requests/endpoints need to be authenticated
 				.authorizeHttpRequests(auth -> auth
-					.requestMatchers("/authenticate").permitAll()
+					.requestMatchers("/authenticate", "/mvc/person/post/**").permitAll()
 					.requestMatchers("/mvc/person/update/**", "/mvc/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
-					.requestMatchers("/api/person/post/**", "/api/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
+					// .requestMatchers("/api/person/post/**", "/api/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
 					.requestMatchers("/**").permitAll()
 				)
 				// support cors
@@ -87,7 +86,7 @@ public class SecurityConfig {
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "Content-Type", "Authorization", "x-csrf-token"))
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-MaxAge", "600"))
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "POST", "GET", "OPTIONS", "HEAD"))
-					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "http://localhost:4000", "https://john-scc.github.io"))
+					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "http://localhost:4000", "http://127.0.0.1:4000", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-ai.github.io"))
 				)
 				.formLogin(form -> form 
 					.loginPage("/login")
@@ -117,7 +116,7 @@ public class SecurityConfig {
 		configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-csrf-token"));
 		configuration.setExposedHeaders(Arrays.asList("authorization"));
 		configuration.setAllowCredentials(true);
-		configuration.setAllowedOrigins(Arrays.asList("https://john-scc.github.io"));
+		configuration.setAllowedOrigins(Arrays.asList("https://john-scc.github.io", "http://127.0.0.1:4100", "http://127.0.0.1:4000", "https://csa-ai.github.io"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
