@@ -1,11 +1,16 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,6 +46,7 @@ public class PersonApiController {
     @Autowired
     private PersonDetailsService personDetailsService;
 
+    public static Set<String> usedClassCodes = new HashSet<>();
     /*
     GET List of People
      */
@@ -100,7 +106,8 @@ public class PersonApiController {
     public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
                                              @RequestParam("password") String password,
                                              @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString) {
+                                             @RequestParam("dob") String dobString, 
+                                             @RequestParam("role") String role) {
         Date dob;
         System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
         try {
@@ -108,9 +115,34 @@ public class PersonApiController {
         } catch (Exception e) {
             return new ResponseEntity<>(dobString +" error;" + e + "try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
         }
+
+        List<Person> humans = repository.findAll();
+        for (Person hman : humans){
+            for (String code : hman.getClassCodes()){
+                usedClassCodes.add(code);
+            }
+        }
         // A person object WITHOUT ID will create a new record with default roles as student
         Person person = new Person(email, password, name, dob);
         personDetailsService.save(person);
+
+        personDetailsService.addRoleToPerson(email, role);
+        String classCode = ""; 
+        if (role == "ROLE_TEACHER"){
+            int CODE_LENGTH = 6; 
+            SecureRandom random = new SecureRandom();
+            BigInteger randomBigInt;
+            do {
+                randomBigInt = new BigInteger(50, random);
+                classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
+            } while (usedClassCodes.contains(classCode));
+            usedClassCodes.add(classCode);
+        }
+
+        ArrayList<String> classcodes = person.getClassCodes();
+        classcodes.add(classCode);
+
+        person.setClassCodes(classcodes);
         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
     }
 

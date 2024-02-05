@@ -122,6 +122,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     }
 
     public void addRoleToPerson(String email, String roleName) { // by passing in the two strings you are giving the user that certain role
+        System.out.println("adding" + roleName + " to " + email);
         Person person = personJpaRepository.findByEmail(email);
         if (person != null) {   // verify person
             PersonRole role = personRoleJpaRepository.findByName(roleName);
@@ -130,11 +131,19 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
                 for (PersonRole roleObj : person.getRoles()) {    // only add if user is missing role
                     if (roleObj.getName().equals(roleName)) {
                         addRole = false;
+                        System.out.println(email + " Already has " + roleName);
                         break;
                     }
                 }
-                if (addRole) person.getRoles().add(role);   // everything is valid for adding role
+                if (addRole) person.getRoles().add(role); 
+                System.out.println(email + " has role " + roleName);  // everything is valid for adding role
             }
+            else {
+                System.out.println("verifying role failed");
+            }
+        }
+        else {
+            System.out.println("verifying person failed");
         }
     }
     

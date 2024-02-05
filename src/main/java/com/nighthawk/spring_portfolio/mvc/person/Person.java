@@ -87,6 +87,8 @@ public class Person {
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
     
 
+    private ArrayList<String> classCodes;
+
     // Constructor used when building object from an API
     public Person(String email, String password, String name, Date dob) {
         this.email = email;
