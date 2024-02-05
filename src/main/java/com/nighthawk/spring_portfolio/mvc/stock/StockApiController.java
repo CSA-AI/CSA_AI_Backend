@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.person;
+package com.nighthawk.spring_portfolio.mvc.stock;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/person")
-public class PersonApiController {
+public class StockApiController {
     //     @Autowired
     // private JwtTokenUtil jwtGen;
     /*
@@ -43,7 +43,7 @@ public class PersonApiController {
     GET List of People
      */
     @GetMapping("/")
-    public ResponseEntity<List<Person>> getPeople() {
+    public ResponseEntity<List<Stock>> getPeople() {
         return new ResponseEntity<>( repository.findAllByOrderByNameAsc(), HttpStatus.OK);
     }
 
@@ -51,10 +51,10 @@ public class PersonApiController {
     GET individual Person using ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Person> getPerson(@PathVariable long id) {
-        Optional<Person> optional = repository.findById(id);
+    public ResponseEntity<Stock> getPerson(@PathVariable long id) {
+        Optional<Stock> optional = repository.findById(id);
         if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
+            Stock person = optional.get();  // value from findByID
             return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
         }
         // Bad ID
@@ -65,10 +65,10 @@ public class PersonApiController {
     DELETE individual Person using ID
      */
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Person> deletePerson(@PathVariable long id) {
-        Optional<Person> optional = repository.findById(id);
+    public ResponseEntity<Stock> deletePerson(@PathVariable long id) {
+        Optional<Stock> optional = repository.findById(id);
         if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
+            Stock person = optional.get();  // value from findByID
             repository.deleteById(id);  // value from findByID
             return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
         }
@@ -91,7 +91,7 @@ public class PersonApiController {
             return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
         }
         // A person object WITHOUT ID will create a new record with default roles as student
-        Person person = new Person(email, password, name, dob);
+        Stock person = new Stock(email, password, name, dob);
         personDetailsService.save(person);
         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
     }
@@ -105,7 +105,7 @@ public class PersonApiController {
         String term = (String) map.get("term");
 
         // JPA query to filter on term
-        List<Person> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
+        List<Stock> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
 
         // return resulting list and status, error checking should be added
         return new ResponseEntity<>(list, HttpStatus.OK);
@@ -115,7 +115,7 @@ public class PersonApiController {
     The personStats API adds stats by Date to Person table 
     */
     @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
+    public ResponseEntity<Stock> personStats(@RequestBody final Map<String,Object> stat_map) {
         // find ID, added extra error handling bc im slow
         long id;
         Object idObject = stat_map.get("id");
@@ -127,9 +127,9 @@ public class PersonApiController {
             // Handle the case where the id is neither String nor Integer
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Person> optional = repository.findById((id));
+        Optional<Stock> optional = repository.findById((id));
         if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
+            Stock person = optional.get();  // value from findByID
 
             // Extract Attributes from JSON
             Map<String, Object> attributeMap = new HashMap<>();
@@ -170,7 +170,7 @@ public class PersonApiController {
     @PutMapping("/update")
     public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
     {
-        Person person = repository.findByEmail(email);
+        Stock person = repository.findByEmail(email);
         person.setPassword(password);
         person.setName(name);
         repository.save(person);
@@ -195,7 +195,7 @@ public class PersonApiController {
         }
 
         if (System.getenv("ADMIN_KEY") == adminKey) {
-            Person person = new Person(email, password, name, dob);
+            Stock person = new Stock(email, password, name, dob);
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
             return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);

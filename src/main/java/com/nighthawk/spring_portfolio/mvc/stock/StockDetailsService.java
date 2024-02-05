@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.person;
+package com.nighthawk.spring_portfolio.mvc.stock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -20,7 +20,7 @@ This class has an instance of Java Persistence API (JPA)
 */
 @Service
 @Transactional
-public class PersonDetailsService implements UserDetailsService {  // "implements" ties ModelRepo to Spring Security
+public class StockDetailsService implements UserDetailsService {  // "implements" ties ModelRepo to Spring Security
     // Encapsulate many object into a single Bean (Person, Roles, and Scrum)
     @Autowired  // Inject PersonJpaRepository
     private StockJpaRepository personJpaRepository;
@@ -34,7 +34,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     /* UserDetailsService Overrides and maps Person & Roles POJO into Spring Security */
     @Override
     public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Person person = personJpaRepository.findByEmail(email); // setting variable user equal to the method finding the username in the database
+        Stock person = personJpaRepository.findByEmail(email); // setting variable user equal to the method finding the username in the database
         if(person==null) {
 			throw new UsernameNotFoundException("User not found with username: " + email);
         }
@@ -48,39 +48,39 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
 
     /* Person Section */
 
-    public  List<Person>listAll() {
+    public  List<Stock>listAll() {
         return personJpaRepository.findAllByOrderByNameAsc();
     }
 
     // custom query to find match to name or email
-    public  List<Person>list(String name, String email) {
+    public  List<Stock>list(String name, String email) {
         return personJpaRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(name, email);
     }
 
     // custom query to find anything containing term in name or email ignoring case
-    public  List<Person>listLike(String term) {
+    public  List<Stock>listLike(String term) {
         return personJpaRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
     }
 
     // custom query to find anything containing term in name or email ignoring case
-    public  List<Person>listLikeNative(String term) {
+    public  List<Stock>listLikeNative(String term) {
         String like_term = String.format("%%%s%%",term);  // Like required % rappers
         return personJpaRepository.findByLikeTermNative(like_term);
     }
 
     // encode password prior to sava
-    public void save(Person person) {
+    public void save(Stock person) {
         person.setPassword(passwordEncoder().encode(person.getPassword()));
         personJpaRepository.save(person);
     }
 
-    public Person get(long id) {
+    public Stock get(long id) {
         return (personJpaRepository.findById(id).isPresent())
                 ? personJpaRepository.findById(id).get()
                 : null;
     }
 
-    public Person getByEmail(String email) {
+    public Stock getByEmail(String email) {
         return (personJpaRepository.findByEmail(email));
     }
 
@@ -89,7 +89,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
     }
 
     public void defaults(String password) {
-        for (Person person: listAll()) {
+        for (Stock person: listAll()) {
             if (person.getPassword() == null || person.getPassword().isEmpty() || person.getPassword().isBlank()) {
                 person.setPassword(passwordEncoder().encode(password));
             }
@@ -98,7 +98,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
 
 
     public void addRoleToPerson(String email, String roleName) { // by passing in the two strings you are giving the user that certain role
-        Person person = personJpaRepository.findByEmail(email);
+        Stock person = personJpaRepository.findByEmail(email);
         if (person != null) {   // verify person
             PersonRole role = personRoleJpaRepository.findByName(roleName);
             if (role != null) { // verify role

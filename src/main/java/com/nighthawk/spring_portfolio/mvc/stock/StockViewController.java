@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.person;
+package com.nighthawk.spring_portfolio.mvc.stock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,14 +13,14 @@ import java.util.List;
 // or similar: https://asbnotebook.com/2020/04/11/spring-boot-thymeleaf-form-validation-example/
 @Controller
 @RequestMapping("/mvc/person")
-public class PersonViewController {
+public class StockViewController {
     // Autowired enables Control to connect HTML and POJO Object to database easily for CRUD
     @Autowired
     private StockDetailsService repository;
 
     @GetMapping("/read")
     public String person(Model model) {
-        List<Person> list = repository.listAll();
+        List<Stock> list = repository.listAll();
         model.addAttribute("list", list);
         return "person/read";
     }
@@ -30,7 +30,7 @@ public class PersonViewController {
         @param - Person Class
     */
     @GetMapping("/create")
-    public String personAdd(Person person) {
+    public String personAdd(Stock person) {
         return "person/create";
     }
 
@@ -39,7 +39,7 @@ public class PersonViewController {
     @param - BindingResult object
      */
     @PostMapping("/create")
-    public String personSave(@Valid Person person, BindingResult bindingResult) {
+    public String personSave(@Valid Stock person, BindingResult bindingResult) {
         // Validation of Decorated PersonForm attributes
         if (bindingResult.hasErrors()) {
             return "person/create";
@@ -57,7 +57,7 @@ public class PersonViewController {
     }
 
     @PostMapping("/update")
-    public String personUpdateSave(@Valid Person person, BindingResult bindingResult) {
+    public String personUpdateSave(@Valid Stock person, BindingResult bindingResult) {
         // Validation of Decorated PersonForm attributes
         if (bindingResult.hasErrors()) {
             return "person/update";

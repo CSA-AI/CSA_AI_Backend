@@ -43,7 +43,7 @@ public class SecurityConfig {
 	private JwtRequestFilter jwtRequestFilter;
 
 	@Autowired
-	private PersonDetailsService personDetailsService;
+	private StockDetailsService personDetailsService;
 
     // @Bean  // Sets up password encoding style
     PasswordEncoder passwordEncoder(){
