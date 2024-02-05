@@ -114,20 +114,44 @@ public class PersonApiController {
     /*
     The personStats API adds stats by Date to Person table 
     */
-    @PostMapping(value = "/setStats", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
-        // find ID
-        long id=Long.parseLong((String)stat_map.get("id"));  
+        // find ID, added extra error handling bc im slow
+        long id;
+        Object idObject = stat_map.get("id");
+        if (idObject instanceof Integer) {
+            id = ((Integer) idObject).longValue();
+        } else if (idObject instanceof String) {
+            id = Long.parseLong((String) idObject);
+        } else {
+            // Handle the case where the id is neither String nor Integer
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         Optional<Person> optional = repository.findById((id));
         if (optional.isPresent()) {  // Good ID
             Person person = optional.get();  // value from findByID
 
             // Extract Attributes from JSON
             Map<String, Object> attributeMap = new HashMap<>();
+            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+
             for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attribute other thaN "date" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id"))
-                    attributeMap.put(entry.getKey(), entry.getValue());
+                // Add all attributes other than "date" and "id" to the "attribute_map"
+                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
+                    // Handle each stock case
+                    for (String stock : stocks) {
+                        if (entry.getKey().equals(stock)) {
+                            // String shares=String.valueOf(entry.getValue());
+                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                            break;
+                        }
+                    }
+                    if (entry.getKey().equals("Balance")) {
+                        // String shares=String.valueOf(entry.getValue());
+                        attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                        break;
+                    }
+                }
             }
 
             // Set Date and Attributes to SQL HashMap
