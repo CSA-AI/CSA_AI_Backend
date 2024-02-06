@@ -1,26 +1,9 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Convert;
-import static jakarta.persistence.FetchType.EAGER;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -28,13 +11,19 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 /*
-Person is a POJO, Plain Old Java Object.
+Stock is a POJO, Plain Old Java Object.
 First set of annotations add functionality to POJO
 --- @Setter @Getter @ToString @NoArgsConstructor @RequiredArgsConstructor
 The last annotation connect to database
@@ -44,7 +33,7 @@ The last annotation connect to database
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Convert(attributeName ="person", converter = JsonType.class)
+@Convert(attributeName ="stock", converter = JsonType.class)
 public class Stock {
 
     // automatic unique identifier for Person record
@@ -52,54 +41,50 @@ public class Stock {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // email, password, roles are key attributes to login and authentication
+    // name, share cost, roles are key attributes to login and authentication
     @NotEmpty
-    @Size(min=5)
     @Column(unique=true)
-    @Email
-    private String email;
-
-    @NotEmpty
-    private String password;
-
-    // @NonNull, etc placed in params of constructor: "@NonNull @Size(min = 2, max = 30, message = "Name (2 to 30 chars)") String name"
-    @NonNull
-    @Size(min = 2, max = 30, message = "Name (2 to 30 chars)")
     private String name;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private Date dob;
+    @DateTimeFormat(pattern = "yyyy-MM-dd") //should probably change to time to be more accurate
+    private Date time;
 
-    // To be implemented
-    @ManyToMany(fetch = EAGER)
-    private Collection<PersonRole> roles = new ArrayList<>();
+    @NotEmpty
+    private Double cost;
+    @NotEmpty
+    private Integer shares;
 
-    /* HashMap is used to store JSON for daily "stats"
-    "stats": {
-        "2022-11-13": {
-            "calories": 2200,
-            "steps": 8000
-        }
-    }
-    */
+    // Are we selling or buying the stock?
+    // @NotEmpty
+    // private String operation;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
-    
 
-    // Constructor used when building object from an API
-    public Stock(String email, String password, String name, Date dob) {
-        this.email = email;
-        this.password = password;
+    // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
+    public Stock(String name, Double cost, Integer shares, String operation, Date time) {
         this.name = name;
-        this.dob = dob;
+        this.cost = cost;
+        this.shares = shares;
+        this.time = time;
+        // this.operation = operation;
     }
 
-    // A custom getter to return age from dob attribute
-    public int getAge() {
-        if (this.dob != null) {
-            LocalDate birthDay = this.dob.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            return Period.between(birthDay, LocalDate.now()).getYears(); }
+    // A custom getter to return cost of a transaction
+    public double getTotalCost() {
+        if (this.cost != null && this.shares != null) {
+            return cost*(float)shares;
+        }
+        return -1;
+    }
+
+    // A custom getter to update total number of shares owned
+    public double getTotalShares() {
+        if (this.name != null && this.shares != null) {
+            // this is placeholder for now, we should get existing shares and subtract
+            return cost*(float)shares;
+        }
         return -1;
     }
 
@@ -107,70 +92,26 @@ public class Stock {
     public static Stock[] init() {
 
         // basics of class construction
-        Stock p1 = new Stock();
-        p1.setName("Thomas Edison");
-        p1.setEmail("toby@gmail.com");
-        p1.setPassword("123Toby!");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1840");
-            p1.setDob(d);
-        } catch (Exception e) {
-            // no actions as dob default is good enough
-        }
-
-        Stock p2 = new Stock();
-        p2.setName("Alexander Graham Bell");
-        p2.setEmail("lexb@gmail.com");
-        p2.setPassword("123LexB!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1845");
-            p2.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Stock p3 = new Stock();
-        p3.setName("Nikola Tesla");
-        p3.setEmail("niko@gmail.com");
-        p3.setPassword("123Niko!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1850");
-            p3.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Stock p4 = new Stock();
-        p4.setName("Madam Currie");
-        p4.setEmail("madam@gmail.com");
-        p4.setPassword("123Madam!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1860");
-            p4.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Stock p5 = new Stock();
-        p5.setName("John Mortensen");
-        p5.setEmail("jm1021@gmail.com");
-        p5.setPassword("123Qwerty!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("10-21-1959");
-            p5.setDob(d);
-        } catch (Exception e) {
-        }
+        Stock s1 = new Stock();
+        s1.setName("AAPL");
+        s1.setCost(188.91);
+        s1.setShares(15);
+        Date d = new SimpleDateFormat("MM-dd-yyyy").parse("02-06-2024");
+        s1.setTime(d);
+        // p1.setOperation("buy"); <-- we can set this on frontend and adjust shares to + or -. If shares is 0 we assume update
 
         // Array definition and data initialization
-        Stock persons[] = {p1, p2, p3, p4, p5};
-        return(persons);
+        Stock stocks[] = {s1};
+        return(stocks);
     }
 
     public static void main(String[] args) {
         // obtain Person from initializer
-        Stock persons[] = init();
+        Stock stocks[] = init();
 
         // iterate using "enhanced for loop"
-        for( Stock person : persons) {
-            System.out.println(person);  // print object
+        for( Stock stock : stocks) {
+            System.out.println(stock);  // print object
         }
     }
 

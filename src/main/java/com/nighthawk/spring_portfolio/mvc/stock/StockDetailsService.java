@@ -25,7 +25,7 @@ public class StockDetailsService implements UserDetailsService {  // "implements
     @Autowired  // Inject PersonJpaRepository
     private StockJpaRepository personJpaRepository;
     @Autowired  // Inject RoleJpaRepository
-    private PersonRoleJpaRepository personRoleJpaRepository;
+    private StockJpaRepository personRoleJpaRepository;
     // @Autowired  // Inject PasswordEncoder
     PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
