@@ -1,5 +1,6 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -96,8 +97,14 @@ public class Stock {
         s1.setName("AAPL");
         s1.setCost(188.91);
         s1.setShares(15);
-        Date d = new SimpleDateFormat("MM-dd-yyyy").parse("02-06-2024");
-        s1.setTime(d);
+        Date d;
+        try {
+            d = new SimpleDateFormat("MM-dd-yyyy").parse("02-06-2024");
+            s1.setTime(d);
+        } catch (ParseException e) {
+            System.out.println("Date parse exception ======================");
+            e.printStackTrace();
+        }
         // p1.setOperation("buy"); <-- we can set this on frontend and adjust shares to + or -. If shares is 0 we assume update
 
         // Array definition and data initialization
