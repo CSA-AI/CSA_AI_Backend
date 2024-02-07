@@ -67,20 +67,6 @@ public class PersonApiController {
     /*
     DELETE individual Person using ID
      */
-    // OLD CODE - DAVID
-    // @DeleteMapping("/delete/{email}")
-    // public ResponseEntity<Person> deletePerson(@PathVariable String email) {
-    //     List<Person> persons = repository.findAllByOrderByEmailAsc(email);
-    //     if (!persons.isEmpty()) {  // Check if the list is not empty
-    //         Person person = persons.get(0);  // Get the first person from the list
-    //         repository.deleteByEmail(email);
-    //         return new ResponseEntity<>(person, HttpStatus.OK);
-    //     }
-    //     // Bad email
-    //     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    // }
-    
-    // NEW CODE - ADI
     @Transactional
     @DeleteMapping("/delete")
     public ResponseEntity<Person> deletePerson(@RequestParam("email") String email) {
@@ -98,21 +84,15 @@ public class PersonApiController {
     POST Aa record by Requesting Parameters from URI
      */
     @PostMapping( "/createPerson")
-    public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString) {
-        Date dob;
-        System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
+    public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            personDetailsService.save(person);
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error;" + e + "try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
-        // A person object WITHOUT ID will create a new record with default roles as student
-        Person person = new Person(email, password, name, dob);
-        personDetailsService.save(person);
-        return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
     }
 
     /*
@@ -163,13 +143,23 @@ public class PersonApiController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
-    {
-        Person person = repository.findByEmail(email);
-        person.setPassword(password);
-        person.setName(name);
-        repository.save(person);
-        return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
+    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();  // Assuming getDob() returns a Date
+            Person person = repository.findByEmail(email);
+
+            if (person != null) {
+                person.setPassword(personRequest.getPassword());
+                person.setName(personRequest.getName());
+                person.setDob(dob);
+                repository.save(person);
+                return new ResponseEntity<>(email + " is updated successfully", HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>("Person with the given email not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error processing the request.", HttpStatus.BAD_REQUEST);
+        }
     }
 
 
@@ -177,27 +167,40 @@ public class PersonApiController {
      * POST Aa record by Requesting Parameters from URI
      */
     @PostMapping("/createAdmin")
-    public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString,
-                                             @RequestParam("admin_key") String adminKey) {
-        Date dob;
+    // ADI code
+    // public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString,
+    //                                          @RequestParam("admin_key") String adminKey) {
+    //     Date dob;
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+    //     }
+
+    //     if (System.getenv("ADMIN_KEY") == adminKey) {
+    //         Person person = new Person(email, password, name, dob);
+    //         personDetailsService.save(person);
+    //         personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+    //         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+    //     }
+
+    //     return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
+
+    // }
+    // what is env for
+    public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
         try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
-        } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
-        }
-
-        if (System.getenv("ADMIN_KEY") == adminKey) {
-            Person person = new Person(email, password, name, dob);
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
             personDetailsService.save(person);
-            personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
-            return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+            personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
-
-        return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
-
     }
 
 
