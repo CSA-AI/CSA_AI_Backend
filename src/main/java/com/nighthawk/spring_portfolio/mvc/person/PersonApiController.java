@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,6 +44,9 @@ public class PersonApiController {
 
     @Autowired
     private PersonDetailsService personDetailsService;
+
+    @Autowired
+    private ClassCodeJpaRepository classCodeRepository;
 
     public static Set<String> usedClassCodes = new HashSet<>();
     /*
@@ -117,18 +119,21 @@ public class PersonApiController {
         }
 
         List<Person> humans = repository.findAll();
-        for (Person hman : humans){
-            for (String code : hman.getClassCodes()){
-                usedClassCodes.add(code);
+        List<ClassCode> dataCodes = classCodeRepository.findAll();
+        if (dataCodes != null){
+            for ( ClassCode dataCode : dataCodes){
+                usedClassCodes.add(dataCode.getClassCode());
             }
         }
+
         // A person object WITHOUT ID will create a new record with default roles as student
         Person person = new Person(email, password, name, dob);
         personDetailsService.save(person);
 
         personDetailsService.addRoleToPerson(email, role);
         String classCode = ""; 
-        if (role == "ROLE_TEACHER"){
+        if ("ROLE_TEACHER".equals(role)){
+            System.out.println("Creating code");
             int CODE_LENGTH = 6; 
             SecureRandom random = new SecureRandom();
             BigInteger randomBigInt;
@@ -137,13 +142,27 @@ public class PersonApiController {
                 classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
             } while (usedClassCodes.contains(classCode));
             usedClassCodes.add(classCode);
+            System.out.println(classCode);
         }
 
-        ArrayList<String> classcodes = person.getClassCodes();
-        classcodes.add(classCode);
+        // ArrayList<String> classcodes = new ArrayList<String>();
+        // classcodes.add(classCode);
+        // System.out.println(classCode);
+        // person.setClassCodes(classcodes);
+        ClassCode adding = new ClassCode(classCode);
+        person.addClassCode(adding);
+        adding.setPerson(person);
 
-        person.setClassCodes(classcodes);
-        return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+        classCodeRepository.save(adding);
+        personDetailsService.save(person);
+        String test;
+        if(classCode.isBlank()){
+            test = "Not work";
+        }
+        else{
+            test = "works";
+        }
+        return new ResponseEntity<>(name +" is created successfully" + test, HttpStatus.CREATED);
     }
 
     /*

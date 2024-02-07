@@ -75,7 +75,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 					.requestMatchers("/authenticate", "/mvc/person/post/**").permitAll()
 					.requestMatchers("/mvc/person/update/**", "/mvc/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
-					// .requestMatchers("/api/person/post/**", "/api/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
+					.requestMatchers("/api/person/post/**", "/api/person/delete/**").permitAll()
 					.requestMatchers("/**").permitAll()
 				)
 				// support cors
