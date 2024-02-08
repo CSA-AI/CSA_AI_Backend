@@ -34,10 +34,10 @@ public class PersonApiController {
 
     // Autowired enables Control to connect POJO Object through JPA
     @Autowired
-    private StockJpaRepository repository;
+    private PersonJpaRepository repository;
 
     @Autowired
-    private StockDetailsService personDetailsService;
+    private PersonDetailsService personDetailsService;
 
     /*
     GET List of People
