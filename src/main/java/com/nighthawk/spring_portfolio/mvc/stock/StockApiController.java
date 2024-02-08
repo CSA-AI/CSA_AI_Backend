@@ -116,84 +116,67 @@ public class StockApiController {
     */
     @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Stock> stockStats(@RequestBody final Map<String,Object> stat_map) {
-        // find ID, added extra error handling bc im slow
-        long id;
-        Object idObject = stat_map.get("id");
-        if (idObject instanceof Integer) {
-            id = ((Integer) idObject).longValue();
-        } else if (idObject instanceof String) {
-            id = Long.parseLong((String) idObject);
-        } else {
-            // Handle the case where the id is neither String nor Integer
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        Optional<Stock> optional = repository.findById((id));
-        if (optional.isPresent()) {  // Good ID
-            Stock stock = optional.get();  // value from findByID
-
-            // Extract Attributes from JSON
-            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
-
-            for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attributes other than "date" and "id" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
-                    // Handle each stock case
-                    for (String stk : stocks) {
-                        if (entry.getKey().equals(stk)) {
-                            repository.setCost(entry.getValue());
-                            // update the individual repo values
-                            break;
-                        }
+    // find ID, added extra error handling bc im slow
+        // Extract Attributes from JSON
+        String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+        for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
+            // Add all attributes other than "date" and "id" to the "attribute_map"
+            if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
+                // Handle each stock case
+                for (String stk : stocks) {
+                    if (entry.getKey().equals(stk)) {
+                        Stock stock = repository.findByName(stk);
+                        Double cost = Double.valueOf(entry.getValue().toString());
+                        stock.setCost(cost);
+                        repository.save(stock);  // conclude by writing the stats updates
+                        // update the individual repo values
+                        break;
                     }
                 }
             }
-
-            // Set Date and Attributes to SQL HashMap
-            repository.save(stock);  // conclude by writing the stats updates
-
-            // return Person with update Stats
-            return new ResponseEntity<>(stock, HttpStatus.OK);
         }
-        // return Bad ID
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
+        // Set Date and Attributes to SQL HashMap
+        // return Person with update Stats
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
-    {
-        Stock stock = repository.findByEmail(email);
-        stock.setName(name);
-        repository.save(stock);
-        return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
-    }
+    // there should be no need for this, we have the previous /updateStocks endpoint for this
+    // @PutMapping("/update")
+    // public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
+    // {
+    //     Stock stock = repository.findByEmail(email);
+    //     stock.setName(name);
+    //     repository.save(stock);
+    //     return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
+    // }
 
 
     /*
-     * POST Aa record by Requesting Parameters from URI
+     * POST Aa record by Requesting Parameters from URI <-- all stocks should be defined in the backend
      */
-    @PostMapping("/createAdmin")
-    public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString,
-                                             @RequestParam("admin_key") String adminKey) {
-        Date dob;
-        try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
-        } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
-        }
+    // @PostMapping("/createAdmin")
+    // public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString,
+    //                                          @RequestParam("admin_key") String adminKey) {
+    //     Date dob;
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+    //     }
 
-        if (System.getenv("ADMIN_KEY") == adminKey) {
-            Stock stock = new Stock(email, password, name, dob);
-            stockDetailsService.save(stock);
-            stockDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
-            return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
-        }
+    //     if (System.getenv("ADMIN_KEY") == adminKey) {
+    //         Stock stock = new Stock(email, password, name, dob);
+    //         stockDetailsService.save(stock);
+    //         stockDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+    //         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+    //     }
 
-        return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
+    //     return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
 
-    }
+    // }
 
 
 }
