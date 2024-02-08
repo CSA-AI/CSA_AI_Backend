@@ -1,5 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.jwt;
 
+import javax.crypto.spec.PBEKeySpec;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
