@@ -16,9 +16,6 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
 
     List<Stock> findAllByOrderByNameAsc();
 
-    // JPA query, findBy does JPA magic with "Name", "Containing", "Or", "Email", "IgnoreCase"
-    List<Stock> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(String name, String email);
-
     /* Custom JPA query articles, there are articles that show custom SQL as well
        https://springframework.guru/spring-data-jpa-query/
        https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods

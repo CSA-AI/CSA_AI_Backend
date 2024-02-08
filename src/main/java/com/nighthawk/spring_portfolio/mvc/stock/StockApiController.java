@@ -99,17 +99,17 @@ public class StockApiController {
     /*
     The stockSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
      */
-    @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> stockSearch(@RequestBody final Map<String,String> map) {
-        // extract term from RequestEntity
-        String term = (String) map.get("term");
+    // @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    // public ResponseEntity<Object> stockSearch(@RequestBody final Map<String,String> map) {
+    //     // extract term from RequestEntity
+    //     String term = (String) map.get("term");
 
-        // JPA query to filter on term
-        List<Stock> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
+    //     // JPA query to filter on term
+    //     List<Stock> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
 
-        // return resulting list and status, error checking should be added
-        return new ResponseEntity<>(list, HttpStatus.OK);
-    }
+    //     // return resulting list and status, error checking should be added
+    //     return new ResponseEntity<>(list, HttpStatus.OK);
+    // }
 
     /*
     The stockStats API adds stats by Date to Person table 

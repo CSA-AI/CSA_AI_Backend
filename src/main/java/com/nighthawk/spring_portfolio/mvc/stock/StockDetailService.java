@@ -31,16 +31,6 @@ public class StockDetailService {  // "implements" ties ModelRepo to Spring Secu
         return stockJpaRepository.findAllByOrderByNameAsc();
     }
 
-    // custom query to find match to name or email
-    public  List<Stock>list(String name, String email) {
-        return stockJpaRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(name, email);
-    }
-
-    // custom query to find anything containing term in name or email ignoring case
-    public  List<Stock>listLike(String term) {
-        return stockJpaRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
-    }
-
     // custom query to find anything containing term in name or email ignoring case
     public  List<Stock>listLikeNative(String term) {
         String like_term = String.format("%%%s%%",term);  // Like required % rappers
