@@ -1,15 +1,15 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+// import org.springframework.security.core.authority.SimpleGrantedAuthority;
+// import org.springframework.security.core.userdetails.StockDetailService;
+// import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import java.util.ArrayList;
-import java.util.Collection;
+// import java.util.ArrayList;
+// import java.util.Collection;
 import java.util.List;
 
 /*
@@ -20,16 +20,10 @@ This class has an instance of Java Persistence API (JPA)
 */
 @Service
 @Transactional
-public class StockDetailsService implements StockDetailsService {  // "implements" ties ModelRepo to Spring Security
+public class StockDetailService {  // "implements" ties ModelRepo to Spring Security
     // Encapsulate many object into a single Bean (stock, Roles, and Scrum)
     @Autowired  // Inject stockJpaRepository
     private StockJpaRepository stockJpaRepository;
-    @Autowired  // Inject RoleJpaRepository
-    private StockJpaRepository stockRoleJpaRepository;
-    // @Autowired  // Inject PasswordEncoder
-    PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
 
     /* stock Section */
 

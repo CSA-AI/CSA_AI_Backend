@@ -37,7 +37,7 @@ public class StockApiController {
     private StockJpaRepository repository;
 
     @Autowired
-    private StockDetailsService stockDetailsService;
+    private StockDetailService stockDetailsService;
 
     /*
     GET List of People
