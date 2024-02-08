@@ -20,8 +20,6 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
        https://springframework.guru/spring-data-jpa-query/
        https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods
     */
-    Stock findByEmailAndPassword(String email, String password);
-
     // Custom JPA query
     @Query(
             value = "SELECT * FROM Person p WHERE p.name LIKE ?1 or p.email LIKE ?1",

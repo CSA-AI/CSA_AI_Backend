@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.springframework.security.crypto.password.PasswordEncoder;
+// import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 // import java.util.ArrayList;
 // import java.util.Collection;
 import java.util.List;
@@ -37,7 +37,6 @@ public class StockDetailService {  // "implements" ties ModelRepo to Spring Secu
         return stockJpaRepository.findByLikeTermNative(like_term);
     }
 
-    // encode password prior to sava
     public Stock get(long id) {
         return (stockJpaRepository.findById(id).isPresent())
                 ? stockJpaRepository.findById(id).get()
