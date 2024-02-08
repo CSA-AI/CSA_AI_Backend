@@ -16,7 +16,7 @@ import java.util.List;
 public class PersonViewController {
     // Autowired enables Control to connect HTML and POJO Object to database easily for CRUD
     @Autowired
-    private StockDetailsService repository;
+    private PersonDetailsService repository;
 
     @GetMapping("/read")
     public String person(Model model) {

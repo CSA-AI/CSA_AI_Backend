@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/person")
+@RequestMapping("/api/stock")
 public class StockApiController {
     //     @Autowired
     // private JwtTokenUtil jwtGen;
@@ -37,25 +37,25 @@ public class StockApiController {
     private StockJpaRepository repository;
 
     @Autowired
-    private StockDetailsService personDetailsService;
+    private StockDetailsService stockDetailsService;
 
     /*
     GET List of People
      */
     @GetMapping("/")
-    public ResponseEntity<List<Stock>> getPeople() {
+    public ResponseEntity<List<Stock>> getStocks() {
         return new ResponseEntity<>( repository.findAllByOrderByNameAsc(), HttpStatus.OK);
     }
 
     /*
     GET individual Person using ID
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<Stock> getPerson(@PathVariable long id) {
-        Optional<Stock> optional = repository.findById(id);
+    @GetMapping("/{name}")
+    public ResponseEntity<Stock> getPerson(@PathVariable long name) {
+        Optional<Stock> optional = repository.findById(name);
         if (optional.isPresent()) {  // Good ID
-            Stock person = optional.get();  // value from findByID
-            return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
+            Stock stock = optional.get();  // value from findByID
+            return new ResponseEntity<>(stock, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
         }
         // Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);       
@@ -68,39 +68,39 @@ public class StockApiController {
     public ResponseEntity<Stock> deletePerson(@PathVariable long id) {
         Optional<Stock> optional = repository.findById(id);
         if (optional.isPresent()) {  // Good ID
-            Stock person = optional.get();  // value from findByID
+            Stock stock = optional.get();  // value from findByID
             repository.deleteById(id);  // value from findByID
-            return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
+            return new ResponseEntity<>(stock, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
         }
         // Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
     }
 
     /*
-    POST Aa record by Requesting Parameters from URI
+    POST Aa record by Requesting Parameters from URI <-- NOT NEEDED, all stocks created in backend
      */
-    @PostMapping( "/createPerson")
-    public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString) {
-        Date dob;
-        try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
-        } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
-        }
-        // A person object WITHOUT ID will create a new record with default roles as student
-        Stock person = new Stock(email, password, name, dob);
-        personDetailsService.save(person);
-        return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
-    }
+    // @PostMapping( "/createPerson")
+    // public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString) {
+    //     Date dob;
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+    //     }
+    //     // A stock object WITHOUT ID will create a new record with default roles as student
+    //     Stock stock = new Stock(email, password, name, dob);
+    //     stockDetailsService.save(stock);
+    //     return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+    // }
 
     /*
-    The personSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
+    The stockSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
      */
     @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> personSearch(@RequestBody final Map<String,String> map) {
+    public ResponseEntity<Object> stockSearch(@RequestBody final Map<String,String> map) {
         // extract term from RequestEntity
         String term = (String) map.get("term");
 
@@ -112,10 +112,10 @@ public class StockApiController {
     }
 
     /*
-    The personStats API adds stats by Date to Person table 
+    The stockStats API adds stats by Date to Person table 
     */
     @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Stock> personStats(@RequestBody final Map<String,Object> stat_map) {
+    public ResponseEntity<Stock> stockStats(@RequestBody final Map<String,Object> stat_map) {
         // find ID, added extra error handling bc im slow
         long id;
         Object idObject = stat_map.get("id");
@@ -129,39 +129,30 @@ public class StockApiController {
         }
         Optional<Stock> optional = repository.findById((id));
         if (optional.isPresent()) {  // Good ID
-            Stock person = optional.get();  // value from findByID
+            Stock stock = optional.get();  // value from findByID
 
             // Extract Attributes from JSON
-            Map<String, Object> attributeMap = new HashMap<>();
             String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
 
             for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
                 // Add all attributes other than "date" and "id" to the "attribute_map"
                 if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
                     // Handle each stock case
-                    for (String stock : stocks) {
-                        if (entry.getKey().equals(stock)) {
-                            // String shares=String.valueOf(entry.getValue());
-                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                    for (String stk : stocks) {
+                        if (entry.getKey().equals(stk)) {
+                            repository.setCost(entry.getValue());
+                            // update the individual repo values
                             break;
                         }
-                    }
-                    if (entry.getKey().equals("Balance")) {
-                        // String shares=String.valueOf(entry.getValue());
-                        attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                        break;
                     }
                 }
             }
 
             // Set Date and Attributes to SQL HashMap
-            Map<String, Map<String, Object>> date_map = new HashMap<>();
-            date_map.put( (String) stat_map.get("date"), attributeMap );
-            person.setStats(date_map);  // BUG, needs to be customized to replace if existing or append if new
-            repository.save(person);  // conclude by writing the stats updates
+            repository.save(stock);  // conclude by writing the stats updates
 
             // return Person with update Stats
-            return new ResponseEntity<>(person, HttpStatus.OK);
+            return new ResponseEntity<>(stock, HttpStatus.OK);
         }
         // return Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
@@ -170,10 +161,9 @@ public class StockApiController {
     @PutMapping("/update")
     public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
     {
-        Stock person = repository.findByEmail(email);
-        person.setPassword(password);
-        person.setName(name);
-        repository.save(person);
+        Stock stock = repository.findByEmail(email);
+        stock.setName(name);
+        repository.save(stock);
         return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
     }
 
@@ -195,9 +185,9 @@ public class StockApiController {
         }
 
         if (System.getenv("ADMIN_KEY") == adminKey) {
-            Stock person = new Stock(email, password, name, dob);
-            personDetailsService.save(person);
-            personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+            Stock stock = new Stock(email, password, name, dob);
+            stockDetailsService.save(stock);
+            stockDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
             return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
         }
 
