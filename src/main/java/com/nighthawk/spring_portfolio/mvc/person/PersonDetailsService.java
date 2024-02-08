@@ -23,7 +23,7 @@ This class has an instance of Java Persistence API (JPA)
 public class PersonDetailsService implements UserDetailsService {  // "implements" ties ModelRepo to Spring Security
     // Encapsulate many object into a single Bean (Person, Roles, and Scrum)
     @Autowired  // Inject PersonJpaRepository
-    private StockJpaRepository personJpaRepository;
+    private PersonJpaRepository personJpaRepository;
     @Autowired  // Inject RoleJpaRepository
     private PersonRoleJpaRepository personRoleJpaRepository;
     // @Autowired  // Inject PasswordEncoder
