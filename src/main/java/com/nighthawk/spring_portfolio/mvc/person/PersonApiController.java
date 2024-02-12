@@ -133,24 +133,24 @@ public class PersonApiController {
 
             // Extract Attributes from JSON
             Map<String, Object> attributeMap = new HashMap<>();
-            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+            // String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
 
             for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
                 // Add all attributes other than "date" and "id" to the "attribute_map"
                 if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
                     // Handle each stock case
-                    for (String stock : stocks) {
-                        if (entry.getKey().equals(stock)) {
+                    // for (String stock : stocks) {
+                        // if (entry.getKey().equals(stock)) {
                             // String shares=String.valueOf(entry.getValue());
                             attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
                             break;
-                        }
-                    }
-                    if (entry.getKey().equals("Balance")) {
-                        // String shares=String.valueOf(entry.getValue());
-                        attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                        break;
-                    }
+                        // }
+                    // }
+                    // if (entry.getKey().equals("Balance")) {
+                        // // String shares=String.valueOf(entry.getValue());
+                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                        // break;
+                    // }
                 }
             }
 
