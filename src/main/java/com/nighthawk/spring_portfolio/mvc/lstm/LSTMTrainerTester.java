@@ -1,25 +1,17 @@
 package com.nighthawk.spring_portfolio.mvc.lstm;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
 import org.deeplearning4j.eval.ROC;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.nd4j.linalg.factory.Nd4j;
-
-
-import org.jfree.data.category.CategoryDataset;
-import org.jfree.data.category.DefaultCategoryDataset;
-
-import com.nighthawk.spring_portfolio.mvc.lstm.LSTMGraph;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -38,7 +30,7 @@ public class LSTMTrainerTester {
     private int features; //5
     private int labels; // 1
     private int batchSize; //32
-    private int stepCount; //1
+    private int stepCount; //10
     private ROC roc;
     private DataSetIterator iterator;
 
@@ -58,19 +50,20 @@ public class LSTMTrainerTester {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = br.readLine();
             System.out.println(line);
-            for (int i = 0; i < 32*100; i++) {
-                line = br.readLine();
-            }
-            for (int i = 0; i < 20; i ++) {
+            for (int i = 0; i < 10; i ++) {
+                System.out.println("Training Dataset " + i);
                 double[][][] featureMatrix = new double[batchSize][this.features][this.stepCount];
                 double[][][] labelsMatrix = new double[batchSize][this.labels][this.stepCount];
                 for (int batch = 0; batch < this.batchSize; batch++) {
-                    line = br.readLine();
-                    String[] values = line.split(",");
-                    featureMatrix[batch][0][0] = Double.parseDouble(values[1]); // OPEN
-                    featureMatrix[batch][1][0] = Double.parseDouble(values[2]); // HIGH
-                    featureMatrix[batch][2][0] = Double.parseDouble(values[3]); // LOW
-                    labelsMatrix[batch][0][0] = Double.parseDouble(values[4]); // CLOSE
+                    for (int series = 0; series < this.stepCount; series++){
+                        line = br.readLine();
+                        String[] values = line.split(",");
+                        featureMatrix[batch][0][series] = Double.parseDouble(values[1]); // OPEN
+                        featureMatrix[batch][1][series] = Double.parseDouble(values[2]); // HIGH
+                        featureMatrix[batch][2][series] = Double.parseDouble(values[3]); // LOW
+                        labelsMatrix[batch][0][series] = Double.parseDouble(values[4]); // CLOSE
+                    }
+                    
                 }
                 INDArray featuresArray = Nd4j.create(featureMatrix);
                 INDArray labelsArray = Nd4j.create(labelsMatrix);
@@ -80,41 +73,47 @@ public class LSTMTrainerTester {
                 net.fit(train);
                 net.rnnClearPreviousState();
             }
-            for (int i = 0; i<1; i++) {
-                double[][][] featureMatrix = new double[batchSize][this.features][this.stepCount];
-                double[][][] labelsMatrix = new double[batchSize][this.labels][this.stepCount];
-                for (int batch = 0; batch < this.batchSize; batch++) {
+            System.out.println("Testing Dataset");
+            double[][][] featureMatrix = new double[batchSize][this.features][this.stepCount];
+            double[][][] labelsMatrix = new double[batchSize][this.labels][this.stepCount];
+            for (int batch = 0; batch < this.batchSize; batch++) {
+                for (int series = 0; series < this.stepCount; series++) {
                     line = br.readLine();
                     String[] values = line.split(",");
-                    featureMatrix[batch][0][0] = Double.parseDouble(values[1]); // OPEN
-                    featureMatrix[batch][1][0] = Double.parseDouble(values[2]); // HIGH
-                    featureMatrix[batch][2][0] = Double.parseDouble(values[3]); // LOW
-                    labelsMatrix[batch][0][0] = Double.parseDouble(values[4]); // CLOSE
-                }
-                INDArray featuresArray = Nd4j.create(featureMatrix);
-                INDArray labelsArray = Nd4j.create(labelsMatrix);
-                DataSet test = new DataSet(featuresArray, labelsArray);
-                minMaxScaler.fit(test);
-                INDArray output = net.output(test.getFeatures());
-                for (int j = 0; j < this.batchSize; j++) {
-                    actual.add(test.getLabels().getDouble(j,0,0));
-                    predicted.add(output.getDouble(j,0,0));
-                }
-                roc.evalTimeSeries(test.getLabels(), output);
+                    featureMatrix[batch][0][series] = Double.parseDouble(values[1]); // OPEN
+                    featureMatrix[batch][1][series] = Double.parseDouble(values[2]); // HIGH
+                    featureMatrix[batch][2][series] = Double.parseDouble(values[3]); // LOW
+                    labelsMatrix[batch][0][series] = Double.parseDouble(values[4]); // CLOSE
+                }   
             }
+            INDArray featuresArray = Nd4j.create(featureMatrix);
+            INDArray labelsArray = Nd4j.create(labelsMatrix);
+            DataSet test = new DataSet(featuresArray, labelsArray);
+            minMaxScaler.fit(test);
+            INDArray output = net.output(test.getFeatures());
+            for (int j = 0; j < this.batchSize; j++) {
+                for (int k = 0; k < this.stepCount; k++) {
+                    actual.add(test.getLabels().getDouble(j,0,k));
+                    predicted.add(output.getDouble(j,0,k));
+                }
+                
+            }
+            roc.evalTimeSeries(test.getLabels(), output);
             System.out.println("Output: ");
             System.out.println(predicted);
             System.out.println("Actual: ");
             System.out.println(actual);
-            
+                
             System.out.println("FINAL TEST AUC: " + roc.calculateAUC());
-            // File locationToSave = new File("src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/StockPriceLSTM_".concat("CLOSE").concat(".zip"));
-            // ModelSerializer.writeModel(net, locationToSave, true);
+            line = br.readLine();
+            System.out.println(line);
+                // File locationToSave = new File("src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/StockPriceLSTM_".concat("CLOSE").concat(".zip"));
+                // ModelSerializer.writeModel(net, locationToSave, true);
             LSTMGraph plotter = new LSTMGraph(actual, predicted);
             System.out.println("Image created");
-            //net = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
+                //net = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
         } catch (IOException e) {
-            e.printStackTrace();
-        }
+        e.printStackTrace();
     }
+}
 }
