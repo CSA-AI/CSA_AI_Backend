@@ -13,4 +13,4 @@ RUN apk --no-cache add git
 COPY . /app
 RUN ./mvnw package
 CMD ["java", "-jar", "target/spring-0.0.1-SNAPSHOT.jar"]
-EXPOSE 8085
+EXPOSE 8017
