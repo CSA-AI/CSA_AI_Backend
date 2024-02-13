@@ -62,8 +62,7 @@ public class LSTMTrainerTester {
                         featureMatrix[batch][1][series] = Double.parseDouble(values[2]); // HIGH
                         featureMatrix[batch][2][series] = Double.parseDouble(values[3]); // LOW
                         labelsMatrix[batch][0][series] = Double.parseDouble(values[4]); // CLOSE
-                    }
-                    
+                    }  
                 }
                 INDArray featuresArray = Nd4j.create(featureMatrix);
                 INDArray labelsArray = Nd4j.create(labelsMatrix);
@@ -74,29 +73,24 @@ public class LSTMTrainerTester {
                 net.rnnClearPreviousState();
             }
             System.out.println("Testing Dataset");
-            double[][][] featureMatrix = new double[batchSize][this.features][this.stepCount];
-            double[][][] labelsMatrix = new double[batchSize][this.labels][this.stepCount];
-            for (int batch = 0; batch < this.batchSize; batch++) {
-                for (int series = 0; series < this.stepCount; series++) {
-                    line = br.readLine();
-                    String[] values = line.split(",");
-                    featureMatrix[batch][0][series] = Double.parseDouble(values[1]); // OPEN
-                    featureMatrix[batch][1][series] = Double.parseDouble(values[2]); // HIGH
-                    featureMatrix[batch][2][series] = Double.parseDouble(values[3]); // LOW
-                    labelsMatrix[batch][0][series] = Double.parseDouble(values[4]); // CLOSE
-                }   
-            }
+            double[][][] featureMatrix = new double[1][this.features][this.stepCount];
+            double[][][] labelsMatrix = new double[1][this.labels][this.stepCount];
+            for (int batch = 0; batch < this.stepCount; batch++) {
+                line = br.readLine();
+                String[] values = line.split(",");
+                featureMatrix[0][0][batch] = Double.parseDouble(values[1]); // OPEN
+                featureMatrix[0][1][batch] = Double.parseDouble(values[2]); // HIGH
+                featureMatrix[0][2][batch] = Double.parseDouble(values[3]); // LOW
+                labelsMatrix[0][0][batch] = Double.parseDouble(values[4]); // CLOSE
+            }   
             INDArray featuresArray = Nd4j.create(featureMatrix);
             INDArray labelsArray = Nd4j.create(labelsMatrix);
             DataSet test = new DataSet(featuresArray, labelsArray);
             minMaxScaler.fit(test);
             INDArray output = net.output(test.getFeatures());
-            for (int j = 0; j < this.batchSize; j++) {
-                for (int k = 0; k < this.stepCount; k++) {
-                    actual.add(test.getLabels().getDouble(j,0,k));
-                    predicted.add(output.getDouble(j,0,k));
-                }
-                
+            for (int j = 0; j < this.stepCount; j++) {
+                actual.add(test.getLabels().getDouble(0,0,j));
+                predicted.add(output.getDouble(0,0,j));
             }
             roc.evalTimeSeries(test.getLabels(), output);
             System.out.println("Output: ");
