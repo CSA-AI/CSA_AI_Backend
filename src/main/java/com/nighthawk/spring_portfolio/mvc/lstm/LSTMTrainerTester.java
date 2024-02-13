@@ -55,10 +55,6 @@ public class LSTMTrainerTester {
         this.roc = new ROC(100);
     }
 
-    public void generateGraph(ArrayList<Double> actual, ArrayList<Double> predicted) {
-
-    }
-
     public void TrainAndTestModel(MultiLayerNetwork net) {
         ArrayList<Double> actual = new ArrayList<Double>();
         ArrayList<Double> predicted = new ArrayList<Double>();
@@ -101,19 +97,21 @@ public class LSTMTrainerTester {
                 DataSet test = new DataSet(featuresArray, labelsArray);
                 minMaxScaler.fit(test);
                 INDArray output = net.output(test.getFeatures());
-                for (int j = 0; j < this.batchSize; j++) {
-                    actual.add(test.getLabels().getDouble(j,0,0));
-                    predicted.add(output.getDouble(j,0,0));
+                ArrayList<Double> outputs = new ArrayList<Double>();
+                ArrayList<Double> actual = new ArrayList<Double>();
+                System.out.println("Output: ");
+                System.out.println(output);
+                System.out.println("Actual: ");
+                System.out.println(test.getLabels());
+                for (int d=0; d < output.shape()[0]; d++ ){
+                    outputs.add(output.getDouble(d,0,0));
+                    actual.add(test.getLabels().getDouble(d,0,0));
                 }
                 roc.evalTimeSeries(test.getLabels(), output);
             }
-            System.out.println("Output: ");
-            System.out.println(predicted);
-            System.out.println("Actual: ");
-            System.out.println(actual);
             
             System.out.println("FINAL TEST AUC: " + roc.calculateAUC());
-            File locationToSave = new File("src/main/resources/StockPriceLSTM_".concat("CLOSE").concat(".zip"));
+            File locationToSave = new File("src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/StockPriceLSTM_".concat("CLOSE").concat(".zip"));
             ModelSerializer.writeModel(net, locationToSave, true);
             //net = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
         } catch (IOException e) {
