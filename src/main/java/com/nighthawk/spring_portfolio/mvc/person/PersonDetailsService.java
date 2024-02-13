@@ -43,6 +43,7 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
             authorities.add(new SimpleGrantedAuthority(role.getName())); //create a SimpleGrantedAuthority by passed in role, adding it all to the authorities list, list of roles gets past in for spring security
         });
         // train spring security to User and Authorities
+        authorities.add(new SimpleGrantedAuthority("USER_ID_" + person.getId()));
         return new org.springframework.security.core.userdetails.User(person.getEmail(), person.getPassword(), authorities);
     }
 
@@ -88,37 +89,14 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         personJpaRepository.deleteById(id);
     }
 
-    public void defaults(String password, String roleName) {
+    public void defaults(String password) {
         for (Person person: listAll()) {
             if (person.getPassword() == null || person.getPassword().isEmpty() || person.getPassword().isBlank()) {
                 person.setPassword(passwordEncoder().encode(password));
             }
-            if (person.getRoles().isEmpty()) {
-                PersonRole role = personRoleJpaRepository.findByName(roleName);
-                if (role != null) { // verify role
-                    person.getRoles().add(role);
-                }
-            }
         }
     }
 
-
-    /* Roles Section */
-
-    public void saveRole(PersonRole role) {
-        PersonRole roleObj = personRoleJpaRepository.findByName(role.getName());
-        if (roleObj == null) {  // only add if it is not found
-            personRoleJpaRepository.save(role);
-        }
-    }
-
-    public  List<PersonRole>listAllRoles() {
-        return personRoleJpaRepository.findAll();
-    }
-
-    public PersonRole findRole(String roleName) {
-        return personRoleJpaRepository.findByName(roleName);
-    }
 
     public void addRoleToPerson(String email, String roleName) { // by passing in the two strings you are giving the user that certain role
         Person person = personJpaRepository.findByEmail(email);

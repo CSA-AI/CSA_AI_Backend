@@ -8,7 +8,6 @@
 - Jokes endpoint: https://spring.nighthawkcodingsociety.com/api/jokes/
 
 
-
 ## Visual thoughts
 
 - Starter code should be fun and practical

@@ -1,16 +1,22 @@
 package com.nighthawk.spring_portfolio.mvc.jwt;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Base64;
 import java.util.function.Function;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import javax.crypto.*;
 
 
 @Component
@@ -53,10 +59,36 @@ public class JwtTokenUtil {
 	}
 
 	//generate token for user
-	public String generateToken(UserDetails userDetails) {
-		Map<String, Object> claims = new HashMap<>();
-		return doGenerateToken(claims, userDetails.getUsername());
-	}
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        ArrayList<String> roles = new ArrayList<>();
+
+        for (GrantedAuthority authority : authorities) {
+            roles.add(authority.getAuthority());
+        }
+
+        // Add roles to claims
+        claims.put("roles", roles);
+
+        // Add user ID to claims
+        if (userDetails instanceof org.springframework.security.core.userdetails.User) {
+            org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) userDetails;
+            claims.put("id", getUserIdFromAuthorities(user.getAuthorities()));
+        }
+
+        return doGenerateToken(claims, userDetails.getUsername());
+    }
+
+	private Long getUserIdFromAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        for (GrantedAuthority authority : authorities) {
+            if (authority.getAuthority().startsWith("USER_ID_")) {
+                String userIdString = authority.getAuthority().substring("USER_ID_".length());
+                return Long.parseLong(userIdString);
+            }
+        }
+        return null;
+    }
 
 	//while creating the token -
 	//1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
