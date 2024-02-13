@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+
 
 @RestController
 @RequestMapping("/api/person")
@@ -64,36 +67,32 @@ public class PersonApiController {
     /*
     DELETE individual Person using ID
      */
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Person> deletePerson(@PathVariable long id) {
-        Optional<Person> optional = repository.findById(id);
-        if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
-            repository.deleteById(id);  // value from findByID
-            return new ResponseEntity<>(person, HttpStatus.OK);  // OK HTTP response: status code, headers, and body
+    @Transactional
+    @DeleteMapping("/delete")
+    public ResponseEntity<Person> deletePerson(@RequestParam("email") String email) {
+        Person person = repository.findByEmail(email);
+        
+        if (person != null) {  // Check if the person is found
+            repository.deleteByEmail(email);
+            return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        // Bad ID
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
+        // Person with the given email not found
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     /*
     POST Aa record by Requesting Parameters from URI
      */
     @PostMapping( "/createPerson")
-    public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString) {
-        Date dob;
+    public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            personDetailsService.save(person);
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
-        // A person object WITHOUT ID will create a new record with default roles as student
-        Person person = new Person(email, password, name, dob);
-        personDetailsService.save(person);
-        return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
     }
 
     /*
@@ -114,20 +113,44 @@ public class PersonApiController {
     /*
     The personStats API adds stats by Date to Person table 
     */
-    @PostMapping(value = "/setStats", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
-        // find ID
-        long id=Long.parseLong((String)stat_map.get("id"));  
+        // find ID, added extra error handling bc im slow
+        long id;
+        Object idObject = stat_map.get("id");
+        if (idObject instanceof Integer) {
+            id = ((Integer) idObject).longValue();
+        } else if (idObject instanceof String) {
+            id = Long.parseLong((String) idObject);
+        } else {
+            // Handle the case where the id is neither String nor Integer
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         Optional<Person> optional = repository.findById((id));
         if (optional.isPresent()) {  // Good ID
             Person person = optional.get();  // value from findByID
 
             // Extract Attributes from JSON
             Map<String, Object> attributeMap = new HashMap<>();
+            // String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+
             for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attribute other thaN "date" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id"))
-                    attributeMap.put(entry.getKey(), entry.getValue());
+                // Add all attributes other than "date" and "id" to the "attribute_map"
+                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
+                    // Handle each stock case
+                    // for (String stock : stocks) {
+                        // if (entry.getKey().equals(stock)) {
+                            // String shares=String.valueOf(entry.getValue());
+                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                            break;
+                        // }
+                    // }
+                    // if (entry.getKey().equals("Balance")) {
+                        // // String shares=String.valueOf(entry.getValue());
+                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                        // break;
+                    // }
+                }
             }
 
             // Set Date and Attributes to SQL HashMap
@@ -144,13 +167,23 @@ public class PersonApiController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
-    {
-        Person person = repository.findByEmail(email);
-        person.setPassword(password);
-        person.setName(name);
-        repository.save(person);
-        return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
+    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();  // Assuming getDob() returns a Date
+            Person person = repository.findByEmail(email);
+
+            if (person != null) {
+                person.setPassword(personRequest.getPassword());
+                person.setName(personRequest.getName());
+                person.setDob(dob);
+                repository.save(person);
+                return new ResponseEntity<>(email + " is updated successfully", HttpStatus.OK);
+            }
+
+            return new ResponseEntity<>("Person with the given email not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error processing the request.", HttpStatus.BAD_REQUEST);
+        }
     }
 
 
@@ -158,27 +191,42 @@ public class PersonApiController {
      * POST Aa record by Requesting Parameters from URI
      */
     @PostMapping("/createAdmin")
-    public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString,
-                                             @RequestParam("admin_key") String adminKey) {
-        Date dob;
+    // ADI code
+    // public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString,
+    //                                          @RequestParam("admin_key") String adminKey) {
+    //     Date dob;
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+    //     }
+
+    //     if (System.getenv("ADMIN_KEY") == adminKey) {
+    //         Person person = new Person(email, password, name, dob);
+    //         personDetailsService.save(person);
+    //         personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+    //         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+    //     }
+
+    //     return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
+
+    // }
+    // what is env for
+    public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
         try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+            Date dob = personRequest.getDob();
+            //if (System.getenv("ADMIN_KEY") == adminKey) {
+                Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+                personDetailsService.save(person);
+                personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
+                return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
+            //}
         } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
-
-        if (System.getenv("ADMIN_KEY") == adminKey) {
-            Person person = new Person(email, password, name, dob);
-            personDetailsService.save(person);
-            personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
-            return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
-        }
-
-        return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
-
     }
 
 
