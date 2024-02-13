@@ -115,7 +115,7 @@ public class PersonApiController {
     */
     @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
-        // find ID, added extra error handling bc im slow
+        // Find ID
         long id;
         Object idObject = stat_map.get("id");
         if (idObject instanceof Integer) {
@@ -123,48 +123,44 @@ public class PersonApiController {
         } else if (idObject instanceof String) {
             id = Long.parseLong((String) idObject);
         } else {
-            // Handle the case where the id is neither String nor Integer
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Person> optional = repository.findById((id));
-        if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
-
-            // Extract Attributes from JSON
-            Map<String, Object> attributeMap = new HashMap<>();
-            // String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
-
-            for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attributes other than "date" and "id" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
-                    // Handle each stock case
-                    // for (String stock : stocks) {
-                        // if (entry.getKey().equals(stock)) {
-                            // String shares=String.valueOf(entry.getValue());
-                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                            break;
-                        // }
-                    // }
-                    // if (entry.getKey().equals("Balance")) {
-                        // // String shares=String.valueOf(entry.getValue());
-                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                        // break;
-                    // }
-                }
+        
+        // Retrieve person from repository
+        Optional<Person> optional = repository.findById(id);
+        if (optional.isPresent()) {
+            Person person = optional.get();
+            
+            // Extract attributes from JSON payload
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("ticker", stat_map.get("ticker"));
+            attributes.put("shares", stat_map.get("shares"));
+            attributes.put("price", stat_map.get("price"));
+            
+            // Get current date
+            String currentDate = (String) stat_map.get("date");
+            
+            // Update or append to existing stats map
+            Map<String, Map<String, Object>> stats = person.getStats();
+            if (stats.containsKey(currentDate)) {
+                // Update existing entry
+                stats.get(currentDate).putAll(attributes);
+            } else {
+                // Append new entry
+                stats.put(currentDate, attributes);
             }
-
-            // Set Date and Attributes to SQL HashMap
-            Map<String, Map<String, Object>> date_map = new HashMap<>();
-            date_map.put( (String) stat_map.get("date"), attributeMap );
-            person.setStats(date_map);  // BUG, needs to be customized to replace if existing or append if new
-            repository.save(person);  // conclude by writing the stats updates
-
-            // return Person with update Stats
+            
+            // Set updated stats and save person
+            person.setStats(stats);
+            repository.save(person);
+            
             return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        // return Bad ID
+        
+        // Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
     }
+
 
     @PutMapping("/update")
     public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestBody Person personRequest) {
