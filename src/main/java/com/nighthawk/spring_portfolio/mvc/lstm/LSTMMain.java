@@ -17,9 +17,9 @@ import com.nighthawk.spring_portfolio.mvc.lstm.LSTMNetModel;
 import com.nighthawk.spring_portfolio.mvc.lstm.LSTMTrainerTester;
 
 public class LSTMMain {
-    public LSTMMain() {
+    public LSTMMain(String ticker1) {
         String directory = "/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data";
-        String ticker = "AAPL"; // stock name
+        String ticker = ticker1; // stock name
 
         System.out.println("Create dataSet iterator...");
    

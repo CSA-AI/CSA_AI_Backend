@@ -54,7 +54,7 @@ public class LSTMApiController {
         // Path imagePath = Paths.get(directory, ticker);
         ArrayList<String> tickers = new ArrayList<String>(Arrays.asList("GOOGL", "AMZN", "AAPL", "TSLA", "WMT", "MSFT", "META", "COST", "LMT", "NOC", "UNH"));
         if (tickers.contains(ticker)) {
-            LSTMMain model = new LSTMMain();
+            LSTMMain model = new LSTMMain(ticker);
             String base64Data = convertPNGToBase64(imagePath);
             return new ResponseEntity<>( base64Data, HttpStatus.OK);
         }
