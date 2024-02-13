@@ -17,22 +17,16 @@ import com.nighthawk.spring_portfolio.mvc.lstm.LSTMNetModel;
 import com.nighthawk.spring_portfolio.mvc.lstm.LSTMTrainerTester;
 
 public class LSTMMain {
-
-
-    public static void main (String[] args) throws IOException {
-        String directory = "/home/eris29/APCSA/LSTM_test_repo/src/main/java/org/stocks/stock_data";
+    public LSTMMain() {
+        String directory = "/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data";
         String ticker = "AAPL"; // stock name
 
         System.out.println("Create dataSet iterator...");
    
-        LSTMTrainerTester iterator1 = new LSTMTrainerTester(directory, ticker, 1, 1, 32, 1);
+        LSTMTrainerTester iterator1 = new LSTMTrainerTester(directory, ticker, 3, 1, 32, 1);
             
-        // System.out.println("nIn: " + iterator.inputColumns() + " nOut: " + iterator.totalOutcomes());
         MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(iterator1.getFeatures(), iterator1.getLabels());
 
         iterator1.TrainAndTestModel(net);
-
-        
-        
     }
 }
