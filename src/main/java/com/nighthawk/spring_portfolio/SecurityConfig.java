@@ -75,7 +75,7 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth
 					.requestMatchers("/authenticate", "/mvc/person/post/**").permitAll()
 					.requestMatchers("/mvc/person/update/**", "/mvc/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
-					// .requestMatchers("/api/person/post/**", "/api/person/delete/**").hasAnyAuthority("ROLE_ADMIN")
+					.requestMatchers("/api/person/post/**", "/api/person/delete/**").permitAll()
 					.requestMatchers("/**").permitAll()
 				)
 				// support cors
@@ -89,10 +89,11 @@ public class SecurityConfig {
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "http://localhost:4000", "http://127.0.0.1:4000", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-lstm.vercel.app", "http://localhost:3000"))
 				)
 				.formLogin(form -> form 
-					.loginPage("/login")
+					.loginPage("/pages/signin")
 				)
 				.logout(logout -> logout
-					.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+					.logoutUrl("/pages/logout")
+					.deleteCookies("jwt")
 					.logoutSuccessUrl("/")
 				)
 				// make sure we use stateless session; 

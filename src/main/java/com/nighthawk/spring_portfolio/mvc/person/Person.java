@@ -1,5 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import static jakarta.persistence.FetchType.EAGER;
+
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
@@ -10,24 +12,23 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Convert;
-import static jakarta.persistence.FetchType.EAGER;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.Size;
-
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -90,13 +91,24 @@ public class Person {
     @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
     
+    @OneToMany(fetch = EAGER)
+    private Collection<ClassCode> classCodes = new ArrayList<>();
 
+    @Column
+	private String ImageEncoder;
+
+    public void addClassCode(ClassCode ClassCode) {
+        this.classCodes.add(ClassCode);
+        ClassCode.setPerson(this);
+    }
+    
     // Constructor used when building object from an API
     public Person(String email, String password, String name, Date dob) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.dob = dob;
+        this.ImageEncoder = null;
     }
 
     // A custom getter to return age from dob attribute
@@ -123,48 +135,9 @@ public class Person {
             // no actions as dob default is good enough
         }
 
-        Person p2 = new Person();
-        p2.setName("Alexander Graham Bell");
-        p2.setEmail("lexb@gmail.com");
-        p2.setPassword("123LexB!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1845");
-            p2.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Person p3 = new Person();
-        p3.setName("Nikola Tesla");
-        p3.setEmail("niko@gmail.com");
-        p3.setPassword("123Niko!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1850");
-            p3.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Person p4 = new Person();
-        p4.setName("Madam Currie");
-        p4.setEmail("madam@gmail.com");
-        p4.setPassword("123Madam!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1860");
-            p4.setDob(d);
-        } catch (Exception e) {
-        }
-
-        Person p5 = new Person();
-        p5.setName("John Mortensen");
-        p5.setEmail("jm1021@gmail.com");
-        p5.setPassword("123Qwerty!");
-        try {
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("10-21-1959");
-            p5.setDob(d);
-        } catch (Exception e) {
-        }
 
         // Array definition and data initialization
-        Person persons[] = {p1, p2, p3, p4, p5};
+        Person persons[] = {p1};
         return(persons);
     }
 
