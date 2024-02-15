@@ -57,7 +57,7 @@ public class LSTMApiController {
             //LSTMMain model = new LSTMMain(ticker);
             //String base64Data = convertPNGToBase64(imagePath);
             LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
-            return new ResponseEntity<>( lstmDataSetCreator.extractDataFromCSV(), HttpStatus.OK);
+            return new ResponseEntity<>( lstmDataSetCreator.createTrainDataset(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
         

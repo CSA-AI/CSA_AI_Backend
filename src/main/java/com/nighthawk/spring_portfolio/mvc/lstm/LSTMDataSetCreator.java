@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.deeplearning4j.eval.ROC;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -62,16 +63,27 @@ public class LSTMDataSetCreator {
                 data.add(closeValue);
             }
             data = MinMaxScaler.minMaxScale(data, 0, 1);
-            return MinMaxScaler.minMaxScaleInverse(data, this.minClose, this.maxClose);
+            return data;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    // public DataSet createDataset() {
-    //     ArrayList<Double> closeData = extractDataFromCSV();
-    //     DataSet dataset = DataSet(Nd4j.create(closeData));
-    //     return dataset;
-    // }
+    public DataSet createTrainDataset() {
+        ArrayList<Double> closeData = extractDataFromCSV();
+        int maxIndex = (int) Math.ceil(closeData.size()*(this.splitRatio));
+        double[][] XTrain = new double[maxIndex-60+1][60];
+        double[] yTrain = new double[maxIndex-60+1];
+        for (int i = 60; i < maxIndex; i++){
+            for (int j = 0; j < this.stepCount; j++) {
+                XTrain[i-60][j] = closeData.get(i-60+j);
+            }
+            yTrain[i-60] = closeData.get(i);
+        }
+        INDArray XTrainArray = Nd4j.create(XTrain); 
+        INDArray yTrainArray = Nd4j.create(yTrain);
+        DataSet trainingDataSet = new DataSet(XTrainArray, yTrainArray);
+        return trainingDataSet;
+    }
 }
