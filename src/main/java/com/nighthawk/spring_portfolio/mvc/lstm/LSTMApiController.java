@@ -48,15 +48,16 @@ public class LSTMApiController {
     }
 
     @GetMapping("/{ticker}")
-    public ResponseEntity<String> getPredictions(@PathVariable String ticker) {
+    public ResponseEntity<?> getPredictions(@PathVariable String ticker) {
         String imagePath = "src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/graphs/line_chart.png";
 
         // Path imagePath = Paths.get(directory, ticker);
         ArrayList<String> tickers = new ArrayList<String>(Arrays.asList("GOOGL", "AMZN", "AAPL", "TSLA", "WMT", "MSFT", "META", "COST", "LMT", "NOC", "UNH"));
         if (tickers.contains(ticker)) {
-            LSTMMain model = new LSTMMain(ticker);
-            String base64Data = convertPNGToBase64(imagePath);
-            return new ResponseEntity<>( base64Data, HttpStatus.OK);
+            //LSTMMain model = new LSTMMain(ticker);
+            //String base64Data = convertPNGToBase64(imagePath);
+            LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
+            return new ResponseEntity<>( lstmDataSetCreator.extractDataFromCSV(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
         
