@@ -23,7 +23,7 @@ public class LSTMMain {
 
         System.out.println("Create dataSet iterator...");
    
-        LSTMTrainerTester iterator1 = new LSTMTrainerTester(directory, ticker, 3, 1, 32, 10);
+        LSTMTrainerTester iterator1 = new LSTMTrainerTester(directory, ticker, 4, 1, 32, 10);
             
         MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(iterator1.getFeatures(), iterator1.getLabels());
 

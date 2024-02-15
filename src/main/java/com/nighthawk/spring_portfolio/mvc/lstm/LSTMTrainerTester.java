@@ -61,6 +61,7 @@ public class LSTMTrainerTester {
                         featureMatrix[batch][0][series] = Double.parseDouble(values[1]); // OPEN
                         featureMatrix[batch][1][series] = Double.parseDouble(values[2]); // HIGH
                         featureMatrix[batch][2][series] = Double.parseDouble(values[3]); // LOW
+                        featureMatrix[batch][3][series] = Double.parseDouble(values[4]); // CLOSE
                         labelsMatrix[batch][0][series] = Double.parseDouble(values[4]); // CLOSE
                     }  
                 }
@@ -81,6 +82,7 @@ public class LSTMTrainerTester {
                 featureMatrix[0][0][batch] = Double.parseDouble(values[1]); // OPEN
                 featureMatrix[0][1][batch] = Double.parseDouble(values[2]); // HIGH
                 featureMatrix[0][2][batch] = Double.parseDouble(values[3]); // LOW
+                featureMatrix[0][3][batch] = Double.parseDouble(values[4]); // CLOSE
                 labelsMatrix[0][0][batch] = Double.parseDouble(values[4]); // CLOSE
             }   
             INDArray featuresArray = Nd4j.create(featureMatrix);
