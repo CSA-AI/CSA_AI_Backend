@@ -89,10 +89,11 @@ public class SecurityConfig {
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-ai.github.io", "http://localhost:3000"))
 				)
 				.formLogin(form -> form 
-					.loginPage("/login")
+					.loginPage("/pages/signin")
 				)
 				.logout(logout -> logout
-					.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+					.logoutUrl("/pages/logout")
+					.deleteCookies("jwt")
 					.logoutSuccessUrl("/")
 				)
 				// make sure we use stateless session; 

@@ -52,21 +52,17 @@ public class ModelInit {
 
             // Person database is populated with test data
             Person[] personArray = Person.init();
+            
             for (Person person : personArray) {
                 //findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase
                 List<Person> personFound = personService.list(person.getName(), person.getEmail());  // lookup
                 if (personFound.size() == 0) {
                     personService.save(person);  // save
-
-                    // Each "test person" starts with a "test note"
-                    String text = "Test " + person.getEmail();
-                    Note n = new Note(text, person);  // constructor uses new person as Many-to-One association
-                    noteRepo.save(n);  // JPA Save
                     personService.addRoleToPerson(person.getEmail(), "ROLE_STUDENT");
+                    
                 }
             }
             // for lesson demonstration: giving admin role to Mortensen
-            personService.addRoleToPerson(personArray[4].getEmail(), "ROLE_ADMIN");
         };
     }
 }

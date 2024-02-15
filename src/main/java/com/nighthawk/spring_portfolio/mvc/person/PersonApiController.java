@@ -1,11 +1,15 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -41,6 +45,10 @@ public class PersonApiController {
     @Autowired
     private PersonDetailsService personDetailsService;
 
+    @Autowired
+    private ClassCodeJpaRepository classCodeRepository;
+
+    public static Set<String> usedClassCodes = new HashSet<>();
     /*
     GET List of People
      */
@@ -100,7 +108,8 @@ public class PersonApiController {
     public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
                                              @RequestParam("password") String password,
                                              @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString) {
+                                             @RequestParam("dob") String dobString, 
+                                             @RequestParam("role") String role) {
         Date dob;
         System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
         try {
@@ -108,12 +117,78 @@ public class PersonApiController {
         } catch (Exception e) {
             return new ResponseEntity<>(dobString +" error;" + e + "try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
         }
+
+        List<Person> humans = repository.findAll();
+        List<ClassCode> dataCodes = classCodeRepository.findAll();
+        if (dataCodes != null){
+            for ( ClassCode dataCode : dataCodes){
+                usedClassCodes.add(dataCode.getClassCode());
+            }
+        }
+
         // A person object WITHOUT ID will create a new record with default roles as student
         Person person = new Person(email, password, name, dob);
         personDetailsService.save(person);
-        return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+
+        personDetailsService.addRoleToPerson(email, role);
+        String classCode = ""; 
+        if ("ROLE_TEACHER".equals(role)){
+            System.out.println("Creating code");
+            int CODE_LENGTH = 6; 
+            SecureRandom random = new SecureRandom();
+            BigInteger randomBigInt;
+            do {
+                randomBigInt = new BigInteger(50, random);
+                classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
+            } while (usedClassCodes.contains(classCode));
+            usedClassCodes.add(classCode);
+            System.out.println(classCode);
+        }
+
+        // ArrayList<String> classcodes = new ArrayList<String>();
+        // classcodes.add(classCode);
+        // System.out.println(classCode);
+        // person.setClassCodes(classcodes);
+        ClassCode adding = new ClassCode(classCode);
+        person.addClassCode(adding);
+        adding.setPerson(person);
+
+        classCodeRepository.save(adding);
+        personDetailsService.save(person);
+        String test;
+        if(classCode.isBlank()){
+            test = "Not work";
+        }
+        else{
+            test = "works";
+        }
+        return new ResponseEntity<>(name +" is created successfully" + test, HttpStatus.CREATED);
     }
 
+    @PostMapping("/createCode")
+    public ResponseEntity<Object> createCode(@RequestParam("email") String email){
+        
+        Person person = repository.findByEmail(email);
+        String classCode = "";
+        System.out.println("Creating code");
+        int CODE_LENGTH = 6; 
+        SecureRandom random = new SecureRandom();
+        BigInteger randomBigInt;
+        do {
+            randomBigInt = new BigInteger(50, random);
+            classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
+        } while (usedClassCodes.contains(classCode));
+        usedClassCodes.add(classCode);
+        System.out.println(classCode);
+
+        ClassCode newCode = new ClassCode(classCode);
+        person.addClassCode(newCode);
+        newCode.setPerson(person);
+        classCodeRepository.save(newCode);
+        personDetailsService.save(person);
+    
+        return new ResponseEntity<>(email + "New code generated", HttpStatus.OK);
+    }
     /*
     The personSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
      */
