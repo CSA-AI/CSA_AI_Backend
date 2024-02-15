@@ -45,7 +45,7 @@ public class LSTMGraph {
 
         // Save the chart to an image file
         try {
-            File imageFile = new File("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/graphs/line_chart.png");
+            File imageFile = new File("src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/graphs/line_chart.png");
             ChartUtils.saveChartAsPNG(imageFile, chart, 800, 600);
             System.out.println("Chart saved to: " + imageFile.getAbsolutePath());
         } catch (IOException e) {

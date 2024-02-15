@@ -207,6 +207,20 @@ public class PersonApiController {
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
     }
 
+    @GetMapping(value = "/stats/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Map<String, Object>>> getStatsById(@PathVariable long id) {
+        // Retrieve person from repository
+        Optional<Person> optional = repository.findById(id);
+        if (optional.isPresent()) {
+            Person person = optional.get();
+            // Get stats data from the person object
+            Map<String, Map<String, Object>> stats = person.getStats();
+            return new ResponseEntity<>(stats, HttpStatus.OK);
+        }
+        // Person not found
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
 
     @PutMapping("/update")
     public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestBody Person personRequest) {
