@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.arrow.flatbuf.Int;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -110,9 +111,49 @@ public class PersonApiController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
-    /*
-    The personStats API adds stats by Date to Person table 
-    */
+    @GetMapping("/stockStats")
+    public ResponseEntity<Map<String, Integer>> getStockStats() {
+        List<Person> users = repository.findAll();
+        HashMap<String, Integer> data = new HashMap<>();
+        
+        users.forEach(user -> {
+            Map<String, Object> userMap = user.getStats().get("02-15-24");
+            if (userMap != null) {
+                String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+                for (String stock : stocks) {
+                    Object value = userMap.get(stock);
+                    if (value instanceof Integer) {
+                        if (data.containsKey(stock)) {
+                            Integer existing = data.get(stock);
+                            data.put(stock, existing + (Integer) value);
+                        } else {
+                            data.put(stock, (Integer) value);
+                        }
+                    } else if (value instanceof String) {
+                        // Handle parsing String to Integer
+                        try {
+                            Integer intValue = Integer.parseInt((String) value);
+                            if (data.containsKey(stock)) {
+                                Integer existing = data.get(stock);
+                                data.put(stock, existing + intValue);
+                            } else {
+                                data.put(stock, intValue);
+                            }
+                        } catch (NumberFormatException e) {
+                            // Handle invalid integer format
+                            System.err.println("Invalid integer format for stock: " + stock);
+                        }
+                    } else {
+                        // Handle other types if necessary
+                        System.err.println("Unsupported type for stock: " + stock);
+                    }
+                }
+            }
+        });
+        
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }    
+
     @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
         // Find ID
@@ -125,35 +166,40 @@ public class PersonApiController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        
-        // Retrieve person from repository
-        Optional<Person> optional = repository.findById(id);
-        if (optional.isPresent()) {
-            Person person = optional.get();
-            
-            // Extract attributes from JSON payload
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("ticker", stat_map.get("ticker"));
-            attributes.put("shares", stat_map.get("shares"));
-            attributes.put("price", stat_map.get("price"));
-            
-            // Get current date
-            String currentDate = (String) stat_map.get("date");
-            
-            // Update or append to existing stats map
-            Map<String, Map<String, Object>> stats = person.getStats();
-            if (stats.containsKey(currentDate)) {
-                // Update existing entry
-                stats.get(currentDate).putAll(attributes);
-            } else {
-                // Append new entry
-                stats.put(currentDate, attributes);
+        Optional<Person> optional = repository.findById((id));
+        if (optional.isPresent()) {  // Good ID
+            Person person = optional.get();  // value from findByID
+
+            // Extract Attributes from JSON
+            Map<String, Object> attributeMap = new HashMap<>();
+            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+
+            for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
+                // Add all attributes other than "date" and "id" to the "attribute_map"
+                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
+                    // Handle each stock case
+                    for (String stock : stocks) {
+                        if (entry.getKey().equals(stock)) {
+                            String shares=String.valueOf(entry.getValue());
+                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                            break;
+                        }
+                    }
+                    // if (entry.getKey().equals("Balance")) {
+                        // // String shares=String.valueOf(entry.getValue());
+                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                        // break;
+                    // }
+                }
             }
-            
-            // Set updated stats and save person
-            person.setStats(stats);
-            repository.save(person);
-            
+
+            // Set Date and Attributes to SQL HashMap
+            Map<String, Map<String, Object>> date_map = new HashMap<>();
+            date_map.put( (String) stat_map.get("date"), attributeMap );
+            person.setStats(date_map);  // BUG, needs to be customized to replace if existing or append if new
+            repository.save(person);  // conclude by writing the stats updates
+
+            // return Person with update Stats
             return new ResponseEntity<>(person, HttpStatus.OK);
         }
         
