@@ -1,6 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +15,8 @@ Extends the JpaRepository interface from Spring Data JPA.
 public interface PersonJpaRepository extends JpaRepository<Person, Long> {
     Person findByEmail(String email);
     // List<Person> findBxyUserEmail(String email);
+    // Optional<Person> optionalFindByEmail(String email);
+
     List<Person> findAllByOrderByNameAsc();
 
     // JPA query, findBy does JPA magic with "Name", "Containing", "Or", "Email", "IgnoreCase"

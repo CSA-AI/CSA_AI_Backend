@@ -1,8 +1,10 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import javax.xml.bind.DatatypeConverter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 
 
@@ -246,4 +251,42 @@ public class PersonApiController {
         return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
     }
 
+    @PostMapping("/image/post")
+    public ResponseEntity<String> saveImage(MultipartFile image, @RequestParam("username") String username) throws IOException {
+        Person existingFileOptional = repository.findByEmail(username);
+        System.out.println(username);
+        if (existingFileOptional != null) {
+            // Person existingFile = existingFileOptional.get();
+            System.out.println("Person exists");
+            Base64.Encoder encoder = Base64.getEncoder();
+            byte[] bytearr = image.getBytes();
+            String encodedString = encoder.encodeToString(bytearr);
+
+            existingFileOptional.setImageEncoder(encodedString);
+            repository.save(existingFileOptional);
+            System.out.println("Image added");
+
+            return new ResponseEntity<>("It is created successfully", HttpStatus.CREATED);
+        } else {
+            // Base64.Encoder encoder = Base64.getEncoder();
+            // byte[] bytearr = image.getBytes();
+            // String encodedString = encoder.encodeToString(bytearr);
+            // Person file = new Person(username, encodedString);
+            // repository.save(file);
+            System.out.println("Person does not exist");
+            return new ResponseEntity<>("It is created successfully", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/image/{email}")
+    public ResponseEntity<?> downloadImage(@PathVariable String email) {
+        Person optional = repository.findByEmail(email);
+        // Person file = optional.get();
+        String data = optional.getImageEncoder();
+        byte[] imageBytes = DatatypeConverter.parseBase64Binary(data);
+        return ResponseEntity.status(HttpStatus.OK)
+                .contentType(MediaType.valueOf("image/png"))
+                .body(imageBytes);
+    }
+    
 }
