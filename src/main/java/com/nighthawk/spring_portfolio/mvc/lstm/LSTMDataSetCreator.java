@@ -86,4 +86,21 @@ public class LSTMDataSetCreator {
         DataSet trainingDataSet = new DataSet(XTrainArray, yTrainArray);
         return trainingDataSet;
     }
+
+    public DataSet createTestDataset() {
+        ArrayList<Double> closeData = extractDataFromCSV();
+        int numEntries = (int) Math.ceil(closeData.size()*(1-this.splitRatio));
+        double[][] XTest = new double[numEntries-60+1][60];
+        double[] yTest = new double[numEntries-60+1];
+        for (int i = (int) Math.ceil(closeData.size()*(this.splitRatio)); i < closeData.size(); i++){
+            for (int j = 0; j < this.stepCount; j++) {
+                XTest[i-60][j] = closeData.get(i-60+j);
+            }
+            yTest[i-60] = closeData.get(i);
+        }
+        INDArray XTestArray = Nd4j.create(XTest); 
+        INDArray yTestArray = Nd4j.create(yTest);
+        DataSet trainingDataSet = new DataSet(XTestArray, yTestArray);
+        return trainingDataSet;
+    }
 }
