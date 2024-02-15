@@ -18,6 +18,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+import com.nighthawk.spring_portfolio.mvc.person.Person;
+
 
 @Component
 public class JwtTokenUtil {
@@ -70,6 +72,11 @@ public class JwtTokenUtil {
 
         // Add roles to claims
         claims.put("roles", roles);
+
+		if (userDetails instanceof Person) {
+			Person person = (Person) userDetails;
+			claims.put("name", person.getName());
+		}
 
         // Add user ID to claims
         if (userDetails instanceof org.springframework.security.core.userdetails.User) {

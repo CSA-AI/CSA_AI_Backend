@@ -1,5 +1,6 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
+import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -15,6 +16,7 @@ import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.arrow.flatbuf.Int;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -79,20 +81,6 @@ public class PersonApiController {
     /*
     DELETE individual Person using ID
      */
-    // OLD CODE - DAVID
-    // @DeleteMapping("/delete/{email}")
-    // public ResponseEntity<Person> deletePerson(@PathVariable String email) {
-    //     List<Person> persons = repository.findAllByOrderByEmailAsc(email);
-    //     if (!persons.isEmpty()) {  // Check if the list is not empty
-    //         Person person = persons.get(0);  // Get the first person from the list
-    //         repository.deleteByEmail(email);
-    //         return new ResponseEntity<>(person, HttpStatus.OK);
-    //     }
-    //     // Bad email
-    //     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    // }
-    
-    // NEW CODE - ADI
     @Transactional
     @DeleteMapping("/delete")
     public ResponseEntity<Person> deletePerson(@RequestParam("email") String email) {
@@ -120,7 +108,7 @@ public class PersonApiController {
         try {
             dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
         } catch (Exception e) {
-            return new ResponseEntity<>(dobString +" error;" + e + "try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
 
         List<Person> humans = repository.findAll();
@@ -209,23 +197,86 @@ public class PersonApiController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
-    /*
-    The personStats API adds stats by Date to Person table 
-    */
-    @PostMapping(value = "/setStats", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping("/stockStats")
+    public ResponseEntity<Map<String, Integer>> getStockStats() {
+        List<Person> users = repository.findAll();
+        HashMap<String, Integer> data = new HashMap<>();
+        
+        users.forEach(user -> {
+            Map<String, Object> userMap = user.getStats().get("02-15-24");
+            if (userMap != null) {
+                String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+                for (String stock : stocks) {
+                    Object value = userMap.get(stock);
+                    if (value instanceof Integer) {
+                        if (data.containsKey(stock)) {
+                            Integer existing = data.get(stock);
+                            data.put(stock, existing + (Integer) value);
+                        } else {
+                            data.put(stock, (Integer) value);
+                        }
+                    } else if (value instanceof String) {
+                        // Handle parsing String to Integer
+                        try {
+                            Integer intValue = Integer.parseInt((String) value);
+                            if (data.containsKey(stock)) {
+                                Integer existing = data.get(stock);
+                                data.put(stock, existing + intValue);
+                            } else {
+                                data.put(stock, intValue);
+                            }
+                        } catch (NumberFormatException e) {
+                            // Handle invalid integer format
+                            System.err.println("Invalid integer format for stock: " + stock);
+                        }
+                    } else {
+                        // Handle other types if necessary
+                        System.err.println("Unsupported type for stock: " + stock);
+                    }
+                }
+            }
+        });
+        
+        return new ResponseEntity<>(data, HttpStatus.OK);
+    }    
+
+    @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Person> personStats(@RequestBody final Map<String,Object> stat_map) {
-        // find ID
-        long id=Long.parseLong((String)stat_map.get("id"));  
+        // Find ID
+        long id;
+        Object idObject = stat_map.get("id");
+        if (idObject instanceof Integer) {
+            id = ((Integer) idObject).longValue();
+        } else if (idObject instanceof String) {
+            id = Long.parseLong((String) idObject);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         Optional<Person> optional = repository.findById((id));
         if (optional.isPresent()) {  // Good ID
             Person person = optional.get();  // value from findByID
 
             // Extract Attributes from JSON
             Map<String, Object> attributeMap = new HashMap<>();
+            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+
             for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attribute other thaN "date" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id"))
-                    attributeMap.put(entry.getKey(), entry.getValue());
+                // Add all attributes other than "date" and "id" to the "attribute_map"
+                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
+                    // Handle each stock case
+                    for (String stock : stocks) {
+                        if (entry.getKey().equals(stock)) {
+                            String shares=String.valueOf(entry.getValue());
+                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                            break;
+                        }
+                    }
+                    // if (entry.getKey().equals("Balance")) {
+                        // // String shares=String.valueOf(entry.getValue());
+                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
+                        // break;
+                    // }
+                }
             }
 
             // Set Date and Attributes to SQL HashMap
@@ -237,9 +288,25 @@ public class PersonApiController {
             // return Person with update Stats
             return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        // return Bad ID
+        
+        // Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
     }
+
+    @GetMapping(value = "/stats/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, Map<String, Object>>> getStatsById(@PathVariable long id) {
+        // Retrieve person from repository
+        Optional<Person> optional = repository.findById(id);
+        if (optional.isPresent()) {
+            Person person = optional.get();
+            // Get stats data from the person object
+            Map<String, Map<String, Object>> stats = person.getStats();
+            return new ResponseEntity<>(stats, HttpStatus.OK);
+        }
+        // Person not found
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
 
     @PutMapping("/update")
     public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 

@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 package-lock.json
 node_modules
-
+volumes/
 ### STS ###
 .apt_generated
 .classpath
@@ -36,3 +36,5 @@ build/
 
 ### Java build ###
 *.class
+
+*.env

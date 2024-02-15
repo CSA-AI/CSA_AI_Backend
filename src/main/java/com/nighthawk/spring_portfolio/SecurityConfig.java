@@ -86,7 +86,7 @@ public class SecurityConfig {
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "Content-Type", "Authorization", "x-csrf-token"))
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-MaxAge", "600"))
 					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "POST", "GET", "OPTIONS", "HEAD"))
-					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-ai.github.io", "http://localhost:3000"))
+					.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "https://nighthawkcoders.github.io", "http://localhost:4000", "http://127.0.0.1:4000", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-lstm.vercel.app", "http://localhost:3000"))
 				)
 				.formLogin(form -> form 
 					.loginPage("/pages/signin")
@@ -117,7 +117,7 @@ public class SecurityConfig {
 		configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-csrf-token"));
 		configuration.setExposedHeaders(Arrays.asList("authorization"));
 		configuration.setAllowCredentials(true);
-		configuration.setAllowedOrigins(Arrays.asList("https://john-scc.github.io", "http://127.0.0.1:4100", "http://127.0.0.1:4000", "https://csa-ai.github.io", "http://localhost:3000"));
+		configuration.setAllowedOrigins(Arrays.asList("https://john-scc.github.io", "http://127.0.0.1:4100", "http://127.0.0.1:4000", "https://csa-lstm.vercel.app", "http://localhost:3000"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);

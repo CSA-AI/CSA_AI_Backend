@@ -89,37 +89,14 @@ public class PersonDetailsService implements UserDetailsService {  // "implement
         personJpaRepository.deleteById(id);
     }
 
-    public void defaults(String password, String roleName) {
+    public void defaults(String password) {
         for (Person person: listAll()) {
             if (person.getPassword() == null || person.getPassword().isEmpty() || person.getPassword().isBlank()) {
                 person.setPassword(passwordEncoder().encode(password));
             }
-            if (person.getRoles().isEmpty()) {
-                PersonRole role = personRoleJpaRepository.findByName(roleName);
-                if (role != null) { // verify role
-                    person.getRoles().add(role);
-                }
-            }
         }
     }
 
-
-    /* Roles Section */
-
-    public void saveRole(PersonRole role) {
-        PersonRole roleObj = personRoleJpaRepository.findByName(role.getName());
-        if (roleObj == null) {  // only add if it is not found
-            personRoleJpaRepository.save(role);
-        }
-    }
-
-    public  List<PersonRole>listAllRoles() {
-        return personRoleJpaRepository.findAll();
-    }
-
-    public PersonRole findRole(String roleName) {
-        return personRoleJpaRepository.findByName(roleName);
-    }
 
     public void addRoleToPerson(String email, String roleName) { // by passing in the two strings you are giving the user that certain role
         System.out.println("adding" + roleName + " to " + email);
