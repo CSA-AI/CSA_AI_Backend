@@ -73,8 +73,8 @@ public class LSTMDataSetCreator {
     public DataSet createTrainDataset() {
         ArrayList<Double> closeData = extractDataFromCSV();
         int maxIndex = (int) Math.ceil(closeData.size()*(this.splitRatio));
-        double[][] XTrain = new double[maxIndex-60+1][60];
-        double[] yTrain = new double[maxIndex-60+1];
+        double[][] XTrain = new double[maxIndex-60][60];
+        double[] yTrain = new double[maxIndex-60];
         for (int i = 60; i < maxIndex; i++){
             for (int j = 0; j < this.stepCount; j++) {
                 XTrain[i-60][j] = closeData.get(i-60+j);
@@ -84,23 +84,26 @@ public class LSTMDataSetCreator {
         INDArray XTrainArray = Nd4j.create(XTrain); 
         INDArray yTrainArray = Nd4j.create(yTrain);
         DataSet trainingDataSet = new DataSet(XTrainArray, yTrainArray);
+        System.out.println(trainingDataSet);
         return trainingDataSet;
     }
 
     public DataSet createTestDataset() {
         ArrayList<Double> closeData = extractDataFromCSV();
-        int numEntries = (int) Math.ceil(closeData.size()*(1-this.splitRatio));
-        double[][] XTest = new double[numEntries-60+1][60];
-        double[] yTest = new double[numEntries-60+1];
-        for (int i = (int) Math.ceil(closeData.size()*(this.splitRatio)); i < closeData.size(); i++){
+        int startIndex = (int) Math.ceil(closeData.size()*(this.splitRatio));
+        int numEntries = closeData.size() - startIndex;
+        double[][] XTest = new double[numEntries][60];
+        double[] yTest = new double[numEntries];
+        for (int i = startIndex; i < closeData.size(); i++){
             for (int j = 0; j < this.stepCount; j++) {
-                XTest[i-60][j] = closeData.get(i-60+j);
+                XTest[i-startIndex][j] = closeData.get(startIndex-60+j);
             }
-            yTest[i-60] = closeData.get(i);
+            yTest[i-startIndex] = closeData.get(i);
         }
         INDArray XTestArray = Nd4j.create(XTest); 
         INDArray yTestArray = Nd4j.create(yTest);
-        DataSet trainingDataSet = new DataSet(XTestArray, yTestArray);
-        return trainingDataSet;
+        DataSet testDataSet = new DataSet(XTestArray, yTestArray);
+        System.out.println(testDataSet);
+        return testDataSet;
     }
 }
