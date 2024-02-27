@@ -55,7 +55,7 @@ public class JwtApiController {
 		// Add the cookie directly to the response
 		return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, tokenCookie.toString()).body(new TokenResponse(token));
 	}
-	@PostMapping("logout")
+	@PostMapping("/logout")
 	public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response) {
 		final Cookie[] cookies = request.getCookies();
 		if (cookies != null) {
