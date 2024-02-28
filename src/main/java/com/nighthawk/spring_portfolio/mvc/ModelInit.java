@@ -47,7 +47,9 @@ public class ModelInit {
                     
                 }
             }
-            // for lesson demonstration: giving admin role to Mortensen
+            for (int i = 1; i <= 2 && i < personArray.length; i++) {
+                personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
+            }            
         };
     }
 }

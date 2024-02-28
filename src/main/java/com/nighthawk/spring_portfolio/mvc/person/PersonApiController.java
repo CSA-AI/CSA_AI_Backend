@@ -1,6 +1,5 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
-import java.security.NoSuchAlgorithmException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -16,7 +15,6 @@ import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.arrow.flatbuf.Int;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -97,66 +95,80 @@ public class PersonApiController {
     /*
     POST Aa record by Requesting Parameters from URI
      */
-    @PostMapping( "/post")
-    public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
-                                             @RequestParam("password") String password,
-                                             @RequestParam("name") String name,
-                                             @RequestParam("dob") String dobString, 
-                                             @RequestParam("role") String role) {
-        Date dob;
-        System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
+
+    @PostMapping( "/createPerson")
+    public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
-            dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            personDetailsService.save(person);
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
-
-        List<Person> humans = repository.findAll();
-        List<ClassCode> dataCodes = classCodeRepository.findAll();
-        if (dataCodes != null){
-            for ( ClassCode dataCode : dataCodes){
-                usedClassCodes.add(dataCode.getClassCode());
-            }
-        }
-
-        // A person object WITHOUT ID will create a new record with default roles as student
-        Person person = new Person(email, password, name, dob);
-        personDetailsService.save(person);
-
-        personDetailsService.addRoleToPerson(email, role);
-        String classCode = ""; 
-        if ("ROLE_TEACHER".equals(role)){
-            System.out.println("Creating code");
-            int CODE_LENGTH = 6; 
-            SecureRandom random = new SecureRandom();
-            BigInteger randomBigInt;
-            do {
-                randomBigInt = new BigInteger(50, random);
-                classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
-            } while (usedClassCodes.contains(classCode));
-            usedClassCodes.add(classCode);
-            System.out.println(classCode);
-        }
-
-        // ArrayList<String> classcodes = new ArrayList<String>();
-        // classcodes.add(classCode);
-        // System.out.println(classCode);
-        // person.setClassCodes(classcodes);
-        ClassCode adding = new ClassCode(classCode);
-        person.addClassCode(adding);
-        adding.setPerson(person);
-
-        classCodeRepository.save(adding);
-        personDetailsService.save(person);
-        String test;
-        if(classCode.isBlank()){
-            test = "Not work";
-        }
-        else{
-            test = "works";
-        }
-        return new ResponseEntity<>(name +" is created successfully" + test, HttpStatus.CREATED);
     }
+
+    // FIX BECAUSE NOT USING JSON
+    // @PostMapping( "/post")
+    // public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString, 
+    //                                          @RequestParam("role") String role) {
+    //     Date dob;
+    //     System.out.println("\t\t\t\t\t"+email+"\t\t\t\t\t");
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
+    //     }
+
+    //     List<Person> humans = repository.findAll();
+    //     List<ClassCode> dataCodes = classCodeRepository.findAll();
+    //     if (dataCodes != null){
+    //         for ( ClassCode dataCode : dataCodes){
+    //             usedClassCodes.add(dataCode.getClassCode());
+    //         }
+    //     }
+
+    //     // A person object WITHOUT ID will create a new record with default roles as student
+    //     Person person = new Person(email, password, name, dob);
+    //     personDetailsService.save(person);
+
+    //     personDetailsService.addRoleToPerson(email, role);
+    //     String classCode = ""; 
+    //     if ("ROLE_TEACHER".equals(role)){
+    //         System.out.println("Creating code");
+    //         int CODE_LENGTH = 6; 
+    //         SecureRandom random = new SecureRandom();
+    //         BigInteger randomBigInt;
+    //         do {
+    //             randomBigInt = new BigInteger(50, random);
+    //             classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
+    //         } while (usedClassCodes.contains(classCode));
+    //         usedClassCodes.add(classCode);
+    //         System.out.println(classCode);
+    //     }
+
+    //     // ArrayList<String> classcodes = new ArrayList<String>();
+    //     // classcodes.add(classCode);
+    //     // System.out.println(classCode);
+    //     // person.setClassCodes(classcodes);
+    //     ClassCode adding = new ClassCode(classCode);
+    //     person.addClassCode(adding);
+    //     adding.setPerson(person);
+
+    //     classCodeRepository.save(adding);
+    //     personDetailsService.save(person);
+    //     String test;
+    //     if(classCode.isBlank()){
+    //         test = "Not work";
+    //     }
+    //     else{
+    //         test = "works";
+    //     }
+    //     return new ResponseEntity<>(name +" is created successfully" + test, HttpStatus.CREATED);
+    // }
 
     @PostMapping("/createCode")
     public ResponseEntity<Object> createCode(@RequestParam("email") String email){
@@ -252,46 +264,41 @@ public class PersonApiController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<Person> optional = repository.findById((id));
-        if (optional.isPresent()) {  // Good ID
-            Person person = optional.get();  // value from findByID
 
-            // Extract Attributes from JSON
-            Map<String, Object> attributeMap = new HashMap<>();
-            String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
+        // Retrieve person from repository
+        Optional<Person> optional = repository.findById(id);
+        if (optional.isPresent()) {
+            Person person = optional.get();
 
-            for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-                // Add all attributes other than "date" and "id" to the "attribute_map"
-                if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
-                    // Handle each stock case
-                    for (String stock : stocks) {
-                        if (entry.getKey().equals(stock)) {
-                            String shares=String.valueOf(entry.getValue());
-                            attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                            break;
-                        }
-                    }
-                    // if (entry.getKey().equals("Balance")) {
-                        // // String shares=String.valueOf(entry.getValue());
-                        // attributeMap.put(entry.getKey(), entry.getValue()); // Add stock attribute
-                        // break;
-                    // }
-                }
+            // Extract attributes from JSON payload
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put("ticker", stat_map.get("ticker"));
+            attributes.put("shares", stat_map.get("shares"));
+            attributes.put("price", stat_map.get("price"));
+
+            // Get current date
+            String currentDate = (String) stat_map.get("date");
+
+            // Update or append to existing stats map
+            Map<String, Map<String, Object>> stats = person.getStats();
+            if (stats.containsKey(currentDate)) {
+                // Update existing entry
+                stats.get(currentDate).putAll(attributes);
+            } else {
+                // Append new entry
+                stats.put(currentDate, attributes);
             }
 
-            // Set Date and Attributes to SQL HashMap
-            Map<String, Map<String, Object>> date_map = new HashMap<>();
-            date_map.put( (String) stat_map.get("date"), attributeMap );
-            person.setStats(date_map);  // BUG, needs to be customized to replace if existing or append if new
-            repository.save(person);  // conclude by writing the stats updates
+            // Set updated stats and save person
+            person.setStats(stats);
+            repository.save(person);
 
-            // return Person with update Stats
             return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        
+
         // Bad ID
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
-    }
+    }   
 
     @GetMapping(value = "/stats/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Map<String, Object>>> getStatsById(@PathVariable long id) {
@@ -309,13 +316,60 @@ public class PersonApiController {
 
 
     @PutMapping("/update")
-    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
-    {
-        Person person = repository.findByEmail(email);
-        person.setPassword(password);
-        person.setName(name);
-        repository.save(person);
-        return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
+    public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();  // Assuming getDob() returns a Date
+            Person person = repository.findByEmail(email);
+            if (person != null) {
+                person.setPassword(personRequest.getPassword());
+                person.setName(personRequest.getName());
+                person.setDob(dob);
+                repository.save(person);
+                return new ResponseEntity<>(email + " is updated successfully", HttpStatus.OK);
+            }
+            return new ResponseEntity<>("Person with the given email not found", HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error processing the request.", HttpStatus.BAD_REQUEST);
+        }
+    }
+
+     /*
+     * POST Aa record by Requesting Parameters from URI
+     */
+    @PostMapping("/createAdmin")
+    // ADI code
+    // public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
+    //                                          @RequestParam("password") String password,
+    //                                          @RequestParam("name") String name,
+    //                                          @RequestParam("dob") String dobString,
+    //                                          @RequestParam("admin_key") String adminKey) {
+    //     Date dob;
+    //     try {
+    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
+    //     }
+    //     if (System.getenv("ADMIN_KEY") == adminKey) {
+    //         Person person = new Person(email, password, name, dob);
+    //         personDetailsService.save(person);
+    //         personDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
+    //         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
+    //     }
+    //     return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
+    // }
+    // what is env for
+    public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();
+            //if (System.getenv("ADMIN_KEY") == adminKey) {
+                Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+                personDetailsService.save(person);
+                personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
+                return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
+            //}
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PostMapping("/image/post")
