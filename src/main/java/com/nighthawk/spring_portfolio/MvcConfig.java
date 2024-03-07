@@ -24,7 +24,7 @@ public class MvcConfig implements WebMvcConfigurer {
     
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**").allowedOrigins("https://nighthawkcoders.github.io", "http://localhost:4000", "http://localhost:3000", "https://csa-lstm.vercel.app");
+        registry.addMapping("/**").allowedOrigins("https://nighthawkcoders.github.io", "http://localhost:4000", "http://localhost:4100", "http://localhost:3000", "https://csa-lstm.vercel.app");
     }
     
 }
