@@ -15,9 +15,9 @@ import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 public class LSTMNetModel {
     private static final int seed = 12345;
-    private static final int lstmLayer1Size = 32;
-    private static final int lstmLayer2Size = 32;
-    private static final int denseLayerSize = 32;
+    private static final int lstmLayer1Size = 50;
+    private static final int lstmLayer2Size = 50;
+    private static final int denseLayerSize = 25;
     private static final double dropoutRatio = 0.2;
     private static final int truncatedBPTTLength = 27;
 
