@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Base64;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
 
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
@@ -63,10 +64,14 @@ public class LSTMApiController {
             LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
             DataSet train = lstmDataSetCreator.createTrainDataset();
             DataSet test = lstmDataSetCreator.createTestDataset();
-            MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(1, 1); // 1 feature, 1 label and that is CLOSE
+            MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(60, 1); // 1 feature, 1 label and that is CLOSE
             net.fit(train);
             INDArray output = net.output(test.getFeatures());
-            return new ResponseEntity<>( output.data().asDouble(), HttpStatus.OK);
+            ArrayList<Double> unNormalizedOutput = new ArrayList<Double>();
+            for (int i = 0; i < output.data().asDouble().length; i++) {
+                unNormalizedOutput.add((Double) output.data().asDouble()[i]);
+            }
+            return new ResponseEntity<>( MinMaxScaler.minMaxScaleInverse(unNormalizedOutput, lstmDataSetCreator.getMinClose(), lstmDataSetCreator.getMaxClose()), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
         

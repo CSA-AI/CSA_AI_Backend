@@ -55,6 +55,9 @@ public class LSTMDataSetCreator {
         ArrayList<Double> data = new ArrayList<Double>(); 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = br.readLine();
+            for (int i = 0; i < 4300; i++) {
+                line = br.readLine();
+            }
             double closeValue;
             while ((line = br.readLine()) != null) {
                 closeValue = Double.parseDouble(line.split(",")[featureIndex]);
