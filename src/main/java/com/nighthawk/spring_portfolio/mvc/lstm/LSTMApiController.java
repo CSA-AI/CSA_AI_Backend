@@ -8,8 +8,12 @@ import java.util.Base64;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.nd4j.linalg.cpu.nativecpu.bindings.Nd4jCpu.lstm;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.api.ndarray.INDArray;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,7 +61,12 @@ public class LSTMApiController {
             //LSTMMain model = new LSTMMain(ticker);
             //String base64Data = convertPNGToBase64(imagePath);
             LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
-            return new ResponseEntity<>( lstmDataSetCreator.createTrainDataset(), HttpStatus.OK);
+            DataSet train = lstmDataSetCreator.createTrainDataset();
+            DataSet test = lstmDataSetCreator.createTestDataset();
+            MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(1, 1); // 1 feature, 1 label and that is CLOSE
+            net.fit(train);
+            INDArray output = net.output(test.getFeatures());
+            return new ResponseEntity<>( output.data().asDouble(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
         
