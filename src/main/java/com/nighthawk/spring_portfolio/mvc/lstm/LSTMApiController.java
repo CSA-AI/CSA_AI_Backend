@@ -73,6 +73,13 @@ public class LSTMApiController {
             }
             return new ResponseEntity<>( MinMaxScaler.minMaxScaleInverse(unNormalizedOutput, lstmDataSetCreator.getMinClose(), lstmDataSetCreator.getMaxClose()), HttpStatus.OK);
         }
+
+        // if (tickers.contains(ticker)) {
+        //     LSTMMain model = new LSTMMain(ticker);
+        //     String base64Data = convertPNGToBase64(imagePath);
+        //     return new ResponseEntity<>( base64Data, HttpStatus.OK);
+        // }
+        
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST); 
         
     }
