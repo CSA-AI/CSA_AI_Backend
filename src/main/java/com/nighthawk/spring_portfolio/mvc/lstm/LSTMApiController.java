@@ -61,7 +61,7 @@ public class LSTMApiController {
         if (tickers.contains(ticker)) {
             //LSTMMain model = new LSTMMain(ticker);
             //String base64Data = convertPNGToBase64(imagePath);
-            LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("/home/eris29/APCSA/CSA_AI_Backend/src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
+            LSTMDataSetCreator lstmDataSetCreator = new LSTMDataSetCreator("./src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/stock_data", ticker, 0.9, 1, 1, 60);
             DataSet train = lstmDataSetCreator.createTrainDataset();
             DataSet test = lstmDataSetCreator.createTestDataset();
             MultiLayerNetwork net = LSTMNetModel.buildLstmNetworks(60, 1); // 1 feature, 1 label and that is CLOSE
