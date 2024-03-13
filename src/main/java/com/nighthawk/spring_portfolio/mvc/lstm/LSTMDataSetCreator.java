@@ -35,6 +35,7 @@ public class LSTMDataSetCreator {
     private int batchSize;
     private int stepCount;
     private int featureIndex;
+    private int predictionRange;
     private double minClose;
     private double maxClose;
 
@@ -45,19 +46,20 @@ public class LSTMDataSetCreator {
         this.splitRatio = splitRatio;
         this.features = features; // 1
         this.labels = labels; // 1
-        this.stepCount = stepCount; // 60
+        this.stepCount = stepCount; // this.predictionRange
         this.featureIndex = 4;
         this.minClose = Double.MAX_VALUE;
         this.maxClose = Double.MIN_VALUE;
+        this.predictionRange = 25;
     }
 
     public ArrayList<Double> extractDataFromCSV() {
         ArrayList<Double> data = new ArrayList<Double>(); 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line = br.readLine();
-            for (int i = 0; i < 4300; i++) {
-                line = br.readLine();
-            }
+            // for (int i = 0; i < 4300; i++) {
+            //     line = br.readLine();
+            // }
             double closeValue;
             while ((line = br.readLine()) != null) {
                 closeValue = Double.parseDouble(line.split(",")[featureIndex]);
@@ -76,13 +78,13 @@ public class LSTMDataSetCreator {
     public DataSet createTrainDataset() {
         ArrayList<Double> closeData = extractDataFromCSV();
         int maxIndex = (int) Math.ceil(closeData.size()*(this.splitRatio));
-        double[][][] XTrain = new double[maxIndex-60+1][60][1];
-        double[][][] yTrain = new double[maxIndex-60+1][1][1];
-        for (int i = 60; i < maxIndex; i++){
+        double[][][] XTrain = new double[maxIndex-this.predictionRange+1][this.predictionRange][1];
+        double[][][] yTrain = new double[maxIndex-this.predictionRange+1][1][1];
+        for (int i = this.predictionRange; i < maxIndex; i++){
             for (int j = 0; j < this.stepCount; j++) {
-                XTrain[i-60][j][0] = closeData.get(i-60+j);
+                XTrain[i-this.predictionRange][j][0] = closeData.get(i-this.predictionRange+j);
             }
-            yTrain[i-60][0][0] = closeData.get(i);
+            yTrain[i-this.predictionRange][0][0] = closeData.get(i);
         }
         INDArray XTrainArray = Nd4j.create(XTrain); 
         INDArray yTrainArray = Nd4j.create(yTrain);
@@ -95,13 +97,13 @@ public class LSTMDataSetCreator {
         int startIndex = (int) Math.ceil(closeData.size()*(this.splitRatio));
         List<Double> testData = closeData.subList(startIndex, closeData.size());
         int maxIndex = testData.size();
-        double[][][] XTest = new double[maxIndex-60+1][60][1];
-        double[][][] yTest = new double[maxIndex-60+1][1][1];
-        for (int i = 60; i < maxIndex; i++){
+        double[][][] XTest = new double[maxIndex-this.predictionRange+1][this.predictionRange][1];
+        double[][][] yTest = new double[maxIndex-this.predictionRange+1][1][1];
+        for (int i = this.predictionRange; i < maxIndex; i++){
             for (int j = 0; j < this.stepCount; j++) {
-                XTest[i-60][j][0] = testData.get(i-60+j);
+                XTest[i-this.predictionRange][j][0] = testData.get(i-this.predictionRange+j);
             }
-            yTest[i-60][0][0] = testData.get(i);
+            yTest[i-this.predictionRange][0][0] = testData.get(i);
         }
         INDArray XTestArray = Nd4j.create(XTest); 
         INDArray yTestArray = Nd4j.create(yTest);
