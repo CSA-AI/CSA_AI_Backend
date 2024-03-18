@@ -7,18 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.annotation.Nonnull;
-import jakarta.persistence.*;
-
-import java.util.Date;
-
-import org.springframework.format.annotation.DateTimeFormat;
-
-import com.mongodb.lang.NonNull;
-
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

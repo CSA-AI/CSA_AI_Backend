@@ -3,7 +3,6 @@ package com.nighthawk.spring_portfolio.mvc.person;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
