@@ -168,10 +168,8 @@ public class PersonApiController {
     //     }
     //     return new ResponseEntity<>(name +" is created successfully" + test, HttpStatus.CREATED);
     // }
-
     @PostMapping("/createCode")
-    public ResponseEntity<Object> createCode(@RequestParam("email") String email){
-        
+    public ResponseEntity<Object> createCode(@RequestParam("email") String email) {
         Person person = repository.findByEmail(email);
         String classCode = "";
         System.out.println("Creating code");
@@ -181,17 +179,17 @@ public class PersonApiController {
         do {
             randomBigInt = new BigInteger(50, random);
             classCode = randomBigInt.toString(32).toUpperCase().substring(0, CODE_LENGTH);
-        } while (usedClassCodes.contains(classCode));
+        } while (usedClassCodes.contains(classCode)); // Check if the code is already in use
         usedClassCodes.add(classCode);
         System.out.println(classCode);
-
+    
         ClassCode newCode = new ClassCode(classCode);
         person.addClassCode(newCode);
         newCode.setPerson(person);
         classCodeRepository.save(newCode);
         personDetailsService.save(person);
     
-        return new ResponseEntity<>(email + "New code generated", HttpStatus.OK);
+        return new ResponseEntity<>(email + " New code generated: " + classCode, HttpStatus.OK);
     }
     /*
     The personSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
