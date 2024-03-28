@@ -9,6 +9,7 @@ import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 
+import com.opencsv.exceptions.CsvException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
@@ -207,7 +208,7 @@ public class StockDataSetIterator implements DataSetIterator {
                 }
                 stockDataList.add(new StockData(arr[0], arr[1], nums[0], nums[1], nums[2], nums[3], nums[4]));
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return stockDataList;
