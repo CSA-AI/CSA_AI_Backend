@@ -23,7 +23,7 @@ public class StockPricePrediction {
 
     public static void main (String[] args) throws IOException {
         String symbol = "AMZN"; // stock name
-        String file = new ClassPathResource("stock_data/" + symbol + ".csv").getFile().getAbsolutePath();
+        String file = new ClassPathResource("scripts/stock_data/" + symbol + ".csv").getFile().getAbsolutePath();
         int batchSize = 32; // mini-batch size // 64
         double splitRatio = 0.85; // 90% for training, 10% for testing // 0.9
         int epochs = 5; // training epochs // 100
