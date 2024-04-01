@@ -99,7 +99,7 @@ public class StockPricePrediction {
     }
 
     private static void predictPriceMultiple (MultiLayerNetwork net, List<Pair<INDArray, INDArray>> testData, double max, double min) {
-        // TODO
+        // TODO                             
     }
 
     /** Predict all the features (open, close, low, high prices and volume) of a stock one-day ahead */
