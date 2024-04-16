@@ -126,24 +126,6 @@ public class LSTMApiController {
 
         // Get current date
         LocalDate currentDate = LocalDate.now();
-
-        // Iterate over tickers
-        for (String ticker : tickers) {
-            System.out.println("Processing ticker: " + ticker);
-
-            try {
-                // Fetch stock data
-                Stock stock = YahooFinance.get(ticker);
-
-                // Save data to CSV
-                saveDataToCSV(stock, ticker);
-                
-                System.out.println("Data saved for ticker: " + ticker);
-            } catch (IOException e) {
-                System.err.println("Error fetching data for ticker: " + ticker);
-                e.printStackTrace();
-            }
-        }
     }
 
     private static void saveDataToCSV(Stock stock, String ticker) throws IOException {
