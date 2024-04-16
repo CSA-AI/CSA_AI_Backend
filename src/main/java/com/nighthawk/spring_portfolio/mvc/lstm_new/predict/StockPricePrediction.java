@@ -3,7 +3,7 @@ package com.nighthawk.spring_portfolio.mvc.lstm_new.predict;
 import com.nighthawk.spring_portfolio.mvc.lstm_new.model.RecurrentNets;
 import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.PriceCategory;
 import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.StockDataSetIterator;
-import com.nighthawk.spring_portfolio.mvc.lstm_new.utils.PlotUtil;
+// import com.nighthawk.spring_portfolio.mvc.lstm_new.utils.PlotUtil;
 import javafx.util.Pair;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
@@ -22,7 +22,7 @@ public class StockPricePrediction {
     private static int exampleLength = 22; // time series length, assume 22 working days per month
 
     public static void main (String[] args) throws IOException {
-        String symbol = "AMZN"; // stock name
+        String symbol = "UNH"; // stock name
         String file = new ClassPathResource("stock_data/" + symbol + ".csv").getFile().getAbsolutePath();
         int batchSize = 32; // mini-batch size // 64
         double splitRatio = 0.85; // 90% for training, 10% for testing // 0.9
@@ -94,8 +94,8 @@ public class StockPricePrediction {
             e.printStackTrace();
         }
 
-        System.out.println("Plot...");
-        PlotUtil.plot(predicts, actuals, String.valueOf(category));
+        // System.out.println("Plot...");
+        // PlotUtil.plot(predicts, actuals, String.valueOf(category));
     }
 
     private static void predictPriceMultiple (MultiLayerNetwork net, List<Pair<INDArray, INDArray>> testData, double max, double min) {
@@ -130,7 +130,7 @@ public class StockPricePrediction {
                 case 4: name = "Stock VOLUME Amount"; break;
                 default: throw new NoSuchElementException();
             }
-            PlotUtil.plot(pred, actu, name);
+            // PlotUtil.plot(pred, actu, name);
         }
     }
 
