@@ -120,6 +120,7 @@ public class LSTMApiController {
         }
     }
 
+    // Run the shell script
     public void runScript() {
         // Define tickers
         List<String> tickers = Arrays.asList("GOOGL", "AMZN", "AAPL", "TSLA", "WMT", "MSFT", "META", "COST", "LMT", "NOC", "UNH");
