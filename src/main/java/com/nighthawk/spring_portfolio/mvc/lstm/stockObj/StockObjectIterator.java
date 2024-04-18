@@ -46,7 +46,7 @@ public class StockObjectIterator implements Iterable<StockObject> {
         int i = 0, j = 0, k = left;
 
         while (i < n1 && j < n2) {
-            if (leftList.get(i).compareTo(rightList.get(j)) <= 0) {
+            if (leftList.get(i).compareTo(rightList.get(j)) >= 0) {
                 this.stockList.set(k++, leftList.get(i++));
             } else {
                 this.stockList.set(k++, rightList.get(j++));
