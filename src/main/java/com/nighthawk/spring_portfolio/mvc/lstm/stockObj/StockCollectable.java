@@ -1,48 +1,24 @@
 package com.nighthawk.spring_portfolio.mvc.lstm.stockObj;
 
 import java.util.List;
-import java.util.ArrayList;
-import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Convert(attributeName ="StockObject", converter = JsonType.class)
 public abstract class StockCollectable implements Comparable<StockCollectable> {
     public final String masterType = "StockCollectable";
 	private String type;
-
-    @NotEmpty
-    @Column(unique=true)
     private String ticker;
-
-    // Next 7 days
-    @NotEmpty
-    @Column()
     private List<Double> predictions;
-
-    @NotEmpty
-    @Column()
     private Double predictionsPercentGrowth;
-
-    @Column()
     private Double open;
-
-    @Column()
     private Double high;
-
-    @Column()
     private Double low;
 
-    @Column()
+
     private Integer volume;
 
 

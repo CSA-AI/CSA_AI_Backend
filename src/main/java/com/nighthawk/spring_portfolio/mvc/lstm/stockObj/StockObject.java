@@ -1,10 +1,10 @@
 package com.nighthawk.spring_portfolio.mvc.lstm.stockObj;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -57,7 +57,6 @@ public class StockObject extends StockCollectable {
     @Column()
     private List<Double> predictions;
 
-    @NotEmpty
     @Column()
     private Double predictionsPercentGrowth;
 
@@ -83,23 +82,29 @@ public class StockObject extends StockCollectable {
 
     // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
     public StockObject(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
-        super(ticker, predictions, open, high, low, volume);
+        this.ticker = ticker;
+        this.predictionsPercentGrowth = 100*((predictions.get(predictions.size()-1)-predictions.get(0))/predictions.get(0));
+        this.predictions = predictions;
+        this.open = open;
+        this.high = high;
+        this.low = low;
+        this.volume = volume;
     }
 
     @Override
     public String toString() {
-        if (this.sortingKey == "growth") {
-            return ("("+ Double.toString(this.predictionsPercentGrowth) + ")");
-        } else if (this.sortingKey == "open") {
-            return ("("+ Double.toString(this.open) + ")");
-        } else if (this.sortingKey == "high") {
-            return "("+ Double.toString(this.high) + ")";
-        } else if (this.sortingKey == "low") {
-            return "("+ Double.toString(this.low) + ")";
-        } else if (this.sortingKey == "volume") {
-            return "("+ Integer.toString(this.volume) + ")";
-        } else if (this.sortingKey == "ticker") {
-            return "("+ this.ticker + ")";
+        if (KeyType.growth.equals(StockObject.key)) {
+            return "(" + Double.toString(this.predictionsPercentGrowth) + ")";
+        } else if (KeyType.open.equals(StockObject.key)) {
+            return "(" + Double.toString(this.open) + ")";
+        } else if (KeyType.high.equals(StockObject.key)) {
+            return "(" + Double.toString(this.high) + ")";
+        } else if (KeyType.low.equals(StockObject.key)) {
+            return "(" + Double.toString(this.low) + ")";
+        } else if (KeyType.volume.equals(StockObject.key)) {
+            return "(" + Integer.toString(this.volume) + ")";
+        } else if (KeyType.ticker.equals(StockObject.key)) {
+            return "(" + this.ticker + ")";
         }
         return "Invalid Key";
     }

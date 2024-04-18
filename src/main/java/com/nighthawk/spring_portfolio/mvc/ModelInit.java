@@ -11,6 +11,8 @@ import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRole;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRoleJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObject;
+import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectDetailsService;
+import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectJpaRepository;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -19,7 +21,7 @@ import java.util.ArrayList;
 @Configuration // Scans Application for ModelInit Bean, this detects CommandLineRunner
 public class ModelInit {  
     @Autowired PersonDetailsService personService;
-    @Autowired PersonDetailsService stockObjectService;
+    @Autowired StockObjectDetailsService stockObjectService;
     @Autowired PersonRoleJpaRepository roleRepo;
 
     @Bean
@@ -56,7 +58,7 @@ public class ModelInit {
 
             ArrayList<StockObject> stockObjectArray = StockObject.init();
             for (StockObject stock : stockObjectArray) { 
-                List<StockObject> stockFound = stockObjectService.findByTicker(stock.getTicker());
+                List<StockObject> stockFound = stockObjectService.list(stock.getTicker());
                 if (stockFound.size() == 0) {
                     stockObjectService.save(stock);
                 }
