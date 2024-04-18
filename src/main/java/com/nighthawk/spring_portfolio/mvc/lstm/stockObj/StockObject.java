@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
+import java.util.Iterator;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -34,10 +36,10 @@ The last annotation connect to database
 @NoArgsConstructor
 @Entity
 @Convert(attributeName ="StockObject", converter = JsonType.class)
-public class StockObject extends StockCollectable {
+public class StockObject extends StockCollectable implements Iterable<StockObject> {
     public enum KeyType implements KeyTypes {ticker, growth, open, high, low, volume}
     public static KeyTypes key = KeyType.growth;
-	public static void setOrder(KeyTypes key) {StockObject.key = key;}
+	public void setOrder(KeyTypes key) {StockObject.key = key;}
 	
 
     private String sortingKey = "growth";
@@ -111,16 +113,32 @@ public class StockObject extends StockCollectable {
 
     @Override
     public int compareTo(StockCollectable stockObj) {
+        if (KeyType.growth.equals(StockObject.key)) {
+            if (this.predictionsPercentGrowth < stockObj.getPredictionsPercentGrowth()) {
+                return -1;
+            } else if (this.predictionsPercentGrowth > stockObj.getPredictionsPercentGrowth()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
         return this.toString().compareTo(stockObj.toString());
     }
 
     @Override
 	protected KeyTypes getKey() { return StockObject.key; }
 
+    @Override
+    public Iterator<StockObject> iterator() {
+        List<StockObject> sortedList = new ArrayList<>(Arrays.asList(this));
+        sortedList.sort(Comparator.naturalOrder());
+        return sortedList.iterator();
+    }
+
 
 
     // Initialize static test data 
-    public static ArrayList<StockObject> init() {
+    public static StockObjectIterator init() {
 
         // basics of class construction
         ArrayList<Double> s1Predictions = new ArrayList<Double>() {
@@ -189,12 +207,30 @@ public class StockObject extends StockCollectable {
         StockObject s4 = new StockObject("UNH", s4Predictions, 442.0, 448.3500061035156, 441.989990234375, 5372400);
         StockObject stocks[] = {s1, s2, s3, s4};
         ArrayList<StockObject> stocksList = new ArrayList<StockObject>(Arrays.asList(stocks));
-        return stocksList;
+        StockObjectIterator sIterator = new StockObjectIterator(stocksList);
+        return sIterator;
     }
 
     public static void main(String[] args) {
         // obtain Person from initializer
-        ArrayList<StockObject> stocks = init();
+        StockObjectIterator stocks = init();
+
+        // iterate using "enhanced for loop"
+        for( StockObject stock : stocks) {
+            System.out.println(stock);  // print object
+        }
+
+        stocks.mergeSort(0, stocks.size()-1);
+        System.out.println();
+
+        // iterate using "enhanced for loop"
+        for( StockObject stock : stocks) {
+            System.out.println(stock);  // print object
+        }
+
+        stocks.setKeyType(KeyType.ticker);
+        stocks.mergeSort(0, stocks.size()-1);
+        System.out.println();
 
         // iterate using "enhanced for loop"
         for( StockObject stock : stocks) {

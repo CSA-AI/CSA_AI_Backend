@@ -13,6 +13,7 @@ import com.nighthawk.spring_portfolio.mvc.person.PersonRoleJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObject;
 import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectDetailsService;
 import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectIterator;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class ModelInit {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
             }
 
-            ArrayList<StockObject> stockObjectArray = StockObject.init();
+            StockObjectIterator stockObjectArray = StockObject.init();
             for (StockObject stock : stockObjectArray) { 
                 List<StockObject> stockFound = stockObjectService.list(stock.getTicker());
                 if (stockFound.size() == 0) {

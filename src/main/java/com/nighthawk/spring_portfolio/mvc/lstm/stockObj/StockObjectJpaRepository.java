@@ -8,4 +8,6 @@ public interface StockObjectJpaRepository extends JpaRepository<StockObject, Lon
     StockObject findByTicker(String ticker);
 
     List<StockObject> findByTickerContainingIgnoreCase(String ticker);
+
+    List<StockObject> findAll();
 }
