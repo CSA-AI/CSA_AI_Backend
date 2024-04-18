@@ -1,15 +1,13 @@
 package com.nighthawk.spring_portfolio.mvc.lstm.stockObj;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
@@ -36,8 +34,11 @@ The last annotation connect to database
 @NoArgsConstructor
 @Entity
 @Convert(attributeName ="StockObject", converter = JsonType.class)
-public class StockObject {
-
+public class StockObject extends StockCollectable {
+    public enum KeyType implements KeyTypes {ticker, growth, open, high, low, volume}
+    public static KeyTypes key = KeyType.growth;
+	public static void setOrder(KeyTypes key) {StockObject.key = key;}
+	
 
     private String sortingKey = "growth";
 
@@ -82,13 +83,7 @@ public class StockObject {
 
     // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
     public StockObject(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
-        this.ticker = ticker;
-        this.predictionsPercentGrowth = 100*((predictions.get(predictions.size()-1)-predictions.get(0))/predictions.get(0));
-        this.predictions = predictions;
-        this.open = open;
-        this.high = high;
-        this.low = low;
-        this.volume = volume;
+        super(ticker, predictions, open, high, low, volume);
     }
 
     @Override
@@ -109,8 +104,18 @@ public class StockObject {
         return "Invalid Key";
     }
 
+    @Override
+    public int compareTo(StockCollectable stockObj) {
+        return this.toString().compareTo(stockObj.toString());
+    }
+
+    @Override
+	protected KeyTypes getKey() { return StockObject.key; }
+
+
+
     // Initialize static test data 
-    public static StockObject[] init() {
+    public static ArrayList<StockObject> init() {
 
         // basics of class construction
         ArrayList<Double> s1Predictions = new ArrayList<Double>() {
@@ -178,12 +183,13 @@ public class StockObject {
         StockObject s3 = new StockObject("GOOGL", s3Predictions, 158.86000061035156, 159.24000549316406, 154.58999633789062, 27114700);
         StockObject s4 = new StockObject("UNH", s4Predictions, 442.0, 448.3500061035156, 441.989990234375, 5372400);
         StockObject stocks[] = {s1, s2, s3, s4};
-        return stocks;
+        ArrayList<StockObject> stocksList = new ArrayList<StockObject>(Arrays.asList(stocks));
+        return stocksList;
     }
 
     public static void main(String[] args) {
         // obtain Person from initializer
-        StockObject stocks[] = init();
+        ArrayList<StockObject> stocks = init();
 
         // iterate using "enhanced for loop"
         for( StockObject stock : stocks) {

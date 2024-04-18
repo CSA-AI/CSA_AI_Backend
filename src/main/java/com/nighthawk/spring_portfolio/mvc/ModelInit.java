@@ -13,11 +13,13 @@ import com.nighthawk.spring_portfolio.mvc.person.PersonRoleJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObject;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Component
 @Configuration // Scans Application for ModelInit Bean, this detects CommandLineRunner
 public class ModelInit {  
     @Autowired PersonDetailsService personService;
+    @Autowired PersonDetailsService stockObjectService;
     @Autowired PersonRoleJpaRepository roleRepo;
 
     @Bean
@@ -52,7 +54,13 @@ public class ModelInit {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
             }
 
-            StockObject[] stockObjectArray = StockObject.init();
+            ArrayList<StockObject> stockObjectArray = StockObject.init();
+            for (StockObject stock : stockObjectArray) { 
+                List<StockObject> stockFound = stockObjectService.findByTicker(stock.getTicker());
+                if (stockFound.size() == 0) {
+                    stockObjectService.save(stock);
+                }
+            }
         };
     }
 }
