@@ -10,6 +10,7 @@ import com.nighthawk.spring_portfolio.mvc.person.Person;
 import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRole;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRoleJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObject;
 
 import java.util.List;
 
@@ -49,7 +50,9 @@ public class ModelInit {
             }
             for (int i = 1; i <= 2 && i < personArray.length; i++) {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
-            }            
+            }
+
+            StockObject[] stockObjectArray = StockObject.init();
         };
     }
 }
