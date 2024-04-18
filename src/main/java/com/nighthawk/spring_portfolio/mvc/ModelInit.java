@@ -10,10 +10,10 @@ import com.nighthawk.spring_portfolio.mvc.person.Person;
 import com.nighthawk.spring_portfolio.mvc.person.PersonDetailsService;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRole;
 import com.nighthawk.spring_portfolio.mvc.person.PersonRoleJpaRepository;
-import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObject;
-import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectDetailsService;
-import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectJpaRepository;
-import com.nighthawk.spring_portfolio.mvc.lstm.stockObj.StockObjectIterator;
+import com.nighthawk.spring_portfolio.mvc.stockObj.StockObject;
+import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectDetailsService;
+import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectIterator;
+import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectJpaRepository;
 
 import java.util.List;
 import java.util.ArrayList;

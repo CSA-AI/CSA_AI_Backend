@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.lstm.stockObj;
+package com.nighthawk.spring_portfolio.mvc.stockObj;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
