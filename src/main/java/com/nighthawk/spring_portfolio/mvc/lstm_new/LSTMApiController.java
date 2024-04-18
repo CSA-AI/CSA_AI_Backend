@@ -75,8 +75,8 @@ public class LSTMApiController {
             System.out.println("File Name: " + fileName);
 
             if (fileName != ticker + "_predictions.csv") {
-                runScript();
-                return new ResponseEntity<>("No prediction files found.", HttpStatus.NOT_FOUND);
+                // runScript();
+                // return new ResponseEntity<>("No prediction files found.", HttpStatus.NOT_FOUND);
             }
 
             // Check if it's a CSV file and matches the ticker
