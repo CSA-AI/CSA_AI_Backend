@@ -118,7 +118,6 @@ public class PersonApiController {
 
     @GetMapping("/stockStats")
     public ResponseEntity<Map<String, Integer>> getStockStats() {
-        List<Person> users = repository.findAll();
         HashMap<String, Integer> data = new HashMap<>();
         // Here you will implement your logic to calculate stock stats based on user data
         // For now, I'll just return an empty map

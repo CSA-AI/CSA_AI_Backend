@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.util.Base64;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
 
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
-import org.nd4j.linalg.cpu.nativecpu.bindings.Nd4jCpu.lstm;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.nd4j.linalg.dataset.DataSet;
@@ -20,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.nighthawk.spring_portfolio.mvc.lstm.*;
 
 @RestController
 @RequestMapping("/api/lstm")
@@ -52,9 +49,9 @@ public class LSTMApiController {
         return base64Data;
     }
 
+    @SuppressWarnings("resource")
     @GetMapping("/{ticker}")
     public ResponseEntity<?> getPredictions(@PathVariable String ticker) {
-        String imagePath = "src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/graphs/line_chart.png";
 
         // Path imagePath = Paths.get(directory, ticker);
         ArrayList<String> tickers = new ArrayList<String>(Arrays.asList("GOOGL", "AMZN", "AAPL", "TSLA", "WMT", "MSFT", "META", "COST", "LMT", "NOC", "UNH"));

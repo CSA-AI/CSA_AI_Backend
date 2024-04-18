@@ -18,6 +18,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+@SuppressWarnings("deprecation")
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
@@ -105,7 +106,6 @@ public class LSTMTrainerTester {
             System.out.println(line);
                 // File locationToSave = new File("src/main/java/com/nighthawk/spring_portfolio/mvc/lstm/resources/StockPriceLSTM_".concat("CLOSE").concat(".zip"));
                 // ModelSerializer.writeModel(net, locationToSave, true);
-            LSTMGraph plotter = new LSTMGraph(actual, predicted);
             System.out.println("Image created");
                 //net = ModelSerializer.restoreMultiLayerNetwork(locationToSave);
         } catch (IOException e) {

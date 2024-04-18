@@ -3,7 +3,6 @@ package com.nighthawk.spring_portfolio;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -20,7 +19,6 @@ public class Main {
         // SpringApplication.run(Main.class, args);
         SpringApplicationBuilder builder = new SpringApplicationBuilder(Main.class);
         builder.headless(true);
-        ConfigurableApplicationContext context = builder.run(args);
     }
 
     @EventListener(ApplicationReadyEvent.class)
