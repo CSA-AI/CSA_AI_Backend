@@ -21,8 +21,8 @@ public class StockPricePrediction {
 
     private static int exampleLength = 22; // time series length, assume 22 working days per month
 
-    public static void main (String[] args) throws IOException {
-        String symbol = "UNH"; // stock name
+    public static void main (String[] args, String ticker) throws IOException {
+        String symbol = ticker; // stock name
         String file = new ClassPathResource("stock_data/" + symbol + ".csv").getFile().getAbsolutePath();
         int batchSize = 32; // mini-batch size // 64
         double splitRatio = 0.85; // 90% for training, 10% for testing // 0.9
