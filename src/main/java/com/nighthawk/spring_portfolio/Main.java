@@ -8,11 +8,13 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.awt.GraphicsEnvironment;
 
 // @SpringBootApplication annotation is the key to building web applications with Java https://spring.io/projects/spring-boot
 @SpringBootApplication
+// @EnableScheduling
 public class Main {
 
     // Starts a spring application as a stand-alone application from the main method
