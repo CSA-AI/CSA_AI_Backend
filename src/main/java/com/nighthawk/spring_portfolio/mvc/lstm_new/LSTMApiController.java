@@ -62,7 +62,7 @@ public class LSTMApiController {
                 return new ResponseEntity<>("Training", HttpStatus.OK);
             } else {
                 CompletableFuture.runAsync(() -> {
-                    String scriptPath = "/home/david/vscode/BE_AI/src/main/resources/pull_data.sh";
+                    String scriptPath = "/home/eris29/APCSA/CSA_AI_Backend/src/main/resources/pull_data.sh"; // TODO: Use a more dynamic path
                     System.out.println("Script path: " + scriptPath);
 
                     ProcessBuilder pb = new ProcessBuilder("/bin/bash", scriptPath);
