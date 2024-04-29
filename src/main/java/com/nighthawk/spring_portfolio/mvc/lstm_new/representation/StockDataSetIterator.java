@@ -3,6 +3,7 @@ package com.nighthawk.spring_portfolio.mvc.lstm_new.representation;
 import com.google.common.collect.ImmutableMap;
 import com.opencsv.CSVReader;
 import javafx.util.Pair;
+import org.javatuples.Triplet;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.DataSetPreProcessor;
@@ -39,7 +40,7 @@ public class StockDataSetIterator implements DataSetIterator {
     /** stock dataset for training */
     private List<StockData> train;
     /** adjusted stock dataset for testing */
-    private List<Pair<INDArray, INDArray>> test;
+    private List<Triplet<INDArray, INDArray, String>> test;
 
     public StockDataSetIterator (String filename, String symbol, int miniBatchSize, int exampleLength, double splitRatio, PriceCategory category) {
         List<StockData> stockDataList = readStockDataFromFile(filename, symbol);
@@ -59,7 +60,7 @@ public class StockDataSetIterator implements DataSetIterator {
         for (int i = 0; i < train.size() - window; i++) { exampleStartOffsets.add(i); }
     }
 
-    public List<Pair<INDArray, INDArray>> getTestDataSet() { return test; }
+    public List<Triplet<INDArray, INDArray, String>> getTestDataSet() { return test; }
 
     public double[] getMaxArray() { return maxArray; }
 
@@ -152,9 +153,10 @@ public class StockDataSetIterator implements DataSetIterator {
 
     @Override public DataSet next() { return next(miniBatchSize); }
     
-    private List<Pair<INDArray, INDArray>> generateTestDataSet (List<StockData> stockDataList) {
+    private List<Triplet<INDArray, INDArray, String>> generateTestDataSet (List<StockData> stockDataList) {
+        String date;
     	int window = exampleLength + predictLength;
-    	List<Pair<INDArray, INDArray>> test = new ArrayList<>();
+    	List<Triplet<INDArray, INDArray, String>> test = new ArrayList<>();
     	for (int i = 0; i < stockDataList.size() - window; i++) {
     		INDArray input = Nd4j.create(new int[] {exampleLength, VECTOR_SIZE}, 'f');
     		for (int j = i; j < i + exampleLength; j++) {
@@ -167,6 +169,7 @@ public class StockDataSetIterator implements DataSetIterator {
     		}
             StockData stock = stockDataList.get(i + exampleLength);
             INDArray label;
+            date = stock.getDate();
             if (category.equals(PriceCategory.ALL)) {
                 label = Nd4j.create(new int[]{VECTOR_SIZE}, 'f'); // ordering is set as 'f', faster construct
                 label.putScalar(new int[] {0}, stock.getOpen());
@@ -185,7 +188,7 @@ public class StockDataSetIterator implements DataSetIterator {
                     default: throw new NoSuchElementException();
                 }
             }
-    		test.add(new Pair<>(input, label));
+    		test.add(new Triplet<>(input, label, date));
     	}
     	return test;
     }
