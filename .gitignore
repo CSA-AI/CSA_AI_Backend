@@ -5,7 +5,9 @@ target/
 !**/src/test/**/target/
 package-lock.json
 node_modules
-# volumes/
+volumes/
+src/main/resources/StockPriceLSTM_CLOSE.zip
+
 ### STS ###
 .apt_generated
 .classpath
