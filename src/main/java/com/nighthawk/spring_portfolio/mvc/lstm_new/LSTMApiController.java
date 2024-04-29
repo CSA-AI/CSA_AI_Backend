@@ -9,12 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.io.FileWriter;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +25,11 @@ public class LSTMApiController {
 
     @GetMapping("/{ticker}")
     public ResponseEntity<?> getPredictions(@PathVariable String ticker) {
-        // Directory containing prediction files
         File directory = new File("src/main/resources/predictions/");
         System.out.println("Directory Path: " + directory.getAbsolutePath());
 
-        // Set to store predicted tickers
         Set<String> predictedTickers = new HashSet<>();
 
-        // Retrieve predicted tickers before looping through prediction files
         File[] files = directory.listFiles();
         if (files != null) {
             for (File file : files) {
@@ -46,7 +40,6 @@ public class LSTMApiController {
                 }
             }
         } else {
-            // Handle the case when the directory is empty or does not exist
             return new ResponseEntity<>("No prediction files found.", HttpStatus.NOT_FOUND);
         }
 
@@ -73,6 +66,7 @@ public class LSTMApiController {
                     System.out.println("Script path: " + scriptPath);
 
                     ProcessBuilder pb = new ProcessBuilder("/bin/bash", scriptPath);
+                    pb.command().add(ticker);
                     pb.directory(new File("src/main/resources/"));
 
                     try {
@@ -99,18 +93,17 @@ public class LSTMApiController {
                 csvData.add(line);
             }
         } catch (IOException e) {
-            e.printStackTrace(); // Handle or log the exception
+            e.printStackTrace();
         }
         return csvData;
     }
 
     private String extractTickerFromFileName(String fileName) {
-        // Assuming file name format is "ticker_predictions.csv"
         int endIndex = fileName.lastIndexOf("_predictions.csv");
         if (endIndex != -1) {
             return fileName.substring(0, endIndex);
         } else {
-            return ""; // Handle error case
+            return "";
         }
     }
 }

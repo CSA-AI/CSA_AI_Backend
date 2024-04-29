@@ -1,29 +1,22 @@
 #!/bin/bash
 
-# Create directory path for script
 export SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 echo "Script directory: $SCRIPT_DIR"
 
-# Log file path
 LOG_FILE="$SCRIPT_DIR/script_log.log"
 
-# Function to log messages
 log() {
     echo "$(date +"%Y-%m-%d %H:%M:%S") - $1" >> "$LOG_FILE"
 }
 
-# Define tickers
-tickers=("GOOGL" "AMZN" "AAPL" "TSLA" "WMT" "MSFT" "META" "COST" "LMT" "NOC" "UNH")
+tickers=("$@")
 
-# Get current date
 current_date=$(date "+%Y-%m-%d")
 log "Current date: $current_date"
 
-# Iterate over tickers
 for ticker in "${tickers[@]}"; do
     log "Processing ticker: $ticker"
     
-    # Download data
     log "Downloading data for $ticker..."
     python3 - <<END
 import yfinance as yf
