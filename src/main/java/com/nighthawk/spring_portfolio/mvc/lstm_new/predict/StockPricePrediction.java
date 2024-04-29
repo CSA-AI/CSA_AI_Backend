@@ -66,6 +66,7 @@ public class StockPricePrediction {
             double max = iterator.getMaxNum(category);
             double min = iterator.getMinNum(category);
             predictPriceOneAhead(net, test, max, min, category, symbol);
+            // predictPriceMultiple(net, test, max, min, epochs, symbol);
         }
         System.out.println("Done...");
     }
@@ -105,62 +106,65 @@ public class StockPricePrediction {
         // PlotUtil.plot(predicts, actuals, String.valueOf(category));
     }
 
-    private static void predictPriceMultiple(MultiLayerNetwork net, List<Pair<INDArray, INDArray>> testData, double max, double min, int numSteps, String symbol) {
+    private static void predictPriceMultiple(MultiLayerNetwork net, List<Triplet<INDArray, INDArray, String>> testData, double max, double min, int numSteps, String symbol) {
         double[] predicts = new double[testData.size()];
         double[] actuals = new double[testData.size()];
-
+    
         for (int i = 0; i < testData.size(); i++) {
-            INDArray testDataInput = testData.get(i).getKey();
-            INDArray testDataOutput = testData.get(i).getValue();
-
+            INDArray testDataInput = testData.get(i).getValue0();
+            INDArray testDataOutput = testData.get(i).getValue1();
+    
             // Initialize arrays to store predicted prices
             double[] predictedPrices = new double[numSteps];
-            double lastPrediction = 0;  // Initialize the last predicted price
-
+    
             // Iterate over each time step to predict multiple future prices
             for (int j = 0; j < numSteps; j++) {
                 // Predict the next price step
                 INDArray predicted = net.rnnTimeStep(testDataInput);
                 double nextPrice = predicted.getDouble(predicted.length() - 1) * (max - min) + min;
-
+    
                 // Update the input array for the next prediction step
-                testDataInput.put(new INDArrayIndex[] { NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, testDataInput.size(2) - 1) }, predicted);
-
+                testDataInput = updateTestDataInput(testDataInput, predicted);
+    
                 // Store the predicted price
                 predictedPrices[j] = nextPrice;
-                lastPrediction = nextPrice;
             }
-
-            predicts[i] = lastPrediction;  // Store the last predicted price
+    
+            predicts[i] = predictedPrices[numSteps - 1];  // Store the last predicted price
             actuals[i] = testDataOutput.getDouble(0);  // Store the actual price
         }
-
+    
         // Printing and saving predictions to a CSV file
         System.out.println("Print out Predictions and Actual Values...");
         System.out.println("Predict,Actual");
         for (int i = 0; i < predicts.length; i++) {
             System.out.println(predicts[i] + "," + actuals[i]);
         }
-
+    
         String fileName = "src/main/resources/predictions/" + symbol + "_multiple_predictions.csv";
-
+    
         try {
             FileWriter writer = new FileWriter(fileName);
             writer.append("Index,PredictedValue\n");
             for (int i = 0; i < predicts.length; i++) {
                 writer.append(String.valueOf(i))
-                    .append(",")
-                    .append(String.valueOf(predicts[i]))
-                    .append("\n");
+                      .append(",")
+                      .append(testData.get(i).getValue2())
+                      .append(",")
+                      .append(String.valueOf(predicts[i]))
+                      .append("\n");
             }
             writer.close();
             System.out.println("CSV file has been created successfully: " + fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        // System.out.println("Plot...");
-        // PlotUtil.plot(predicts, actuals, "Multiple Predictions");
+    }
+    
+    private static INDArray updateTestDataInput(INDArray testDataInput, INDArray predicted) {
+        // Shift the elements of the input array to the left and append the predicted value at the end
+        testDataInput.put(new INDArrayIndex[] { NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, testDataInput.size(2) - 1) }, predicted);
+        return testDataInput;
     }
 
     /** Predict all the features (open, close, low, high prices and volume) of a stock one-day ahead */
