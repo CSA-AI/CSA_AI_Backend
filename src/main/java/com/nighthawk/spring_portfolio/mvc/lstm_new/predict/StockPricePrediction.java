@@ -1,21 +1,25 @@
 package com.nighthawk.spring_portfolio.mvc.lstm_new.predict;
 
-import com.nighthawk.spring_portfolio.mvc.lstm_new.model.RecurrentNets;
-import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.PriceCategory;
-import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.StockDataSetIterator;
-// import com.nighthawk.spring_portfolio.mvc.lstm_new.utils.PlotUtil;
-import javafx.util.Pair;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.linalg.indexing.INDArrayIndex;
+import org.nd4j.linalg.indexing.NDArrayIndex;
 import org.nd4j.linalg.io.ClassPathResource;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.io.FileWriter;
+import com.nighthawk.spring_portfolio.mvc.lstm_new.model.RecurrentNets;
+import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.PriceCategory;
+import com.nighthawk.spring_portfolio.mvc.lstm_new.representation.StockDataSetIterator;
+
+// import com.nighthawk.spring_portfolio.mvc.lstm_new.utils.PlotUtil;
+import javafx.util.Pair;
 
 public class StockPricePrediction {
 
@@ -98,8 +102,62 @@ public class StockPricePrediction {
         // PlotUtil.plot(predicts, actuals, String.valueOf(category));
     }
 
-    private static void predictPriceMultiple (MultiLayerNetwork net, List<Pair<INDArray, INDArray>> testData, double max, double min) {
-        // TODO                             
+    private static void predictPriceMultiple(MultiLayerNetwork net, List<Pair<INDArray, INDArray>> testData, double max, double min, int numSteps, String symbol) {
+        double[] predicts = new double[testData.size()];
+        double[] actuals = new double[testData.size()];
+
+        for (int i = 0; i < testData.size(); i++) {
+            INDArray testDataInput = testData.get(i).getKey();
+            INDArray testDataOutput = testData.get(i).getValue();
+
+            // Initialize arrays to store predicted prices
+            double[] predictedPrices = new double[numSteps];
+            double lastPrediction = 0;  // Initialize the last predicted price
+
+            // Iterate over each time step to predict multiple future prices
+            for (int j = 0; j < numSteps; j++) {
+                // Predict the next price step
+                INDArray predicted = net.rnnTimeStep(testDataInput);
+                double nextPrice = predicted.getDouble(predicted.length() - 1) * (max - min) + min;
+
+                // Update the input array for the next prediction step
+                testDataInput.put(new INDArrayIndex[] { NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, 1), NDArrayIndex.interval(0, testDataInput.size(2) - 1) }, predicted);
+
+                // Store the predicted price
+                predictedPrices[j] = nextPrice;
+                lastPrediction = nextPrice;
+            }
+
+            predicts[i] = lastPrediction;  // Store the last predicted price
+            actuals[i] = testDataOutput.getDouble(0);  // Store the actual price
+        }
+
+        // Printing and saving predictions to a CSV file
+        System.out.println("Print out Predictions and Actual Values...");
+        System.out.println("Predict,Actual");
+        for (int i = 0; i < predicts.length; i++) {
+            System.out.println(predicts[i] + "," + actuals[i]);
+        }
+
+        String fileName = "src/main/resources/predictions/" + symbol + "_multiple_predictions.csv";
+
+        try {
+            FileWriter writer = new FileWriter(fileName);
+            writer.append("Index,PredictedValue\n");
+            for (int i = 0; i < predicts.length; i++) {
+                writer.append(String.valueOf(i))
+                    .append(",")
+                    .append(String.valueOf(predicts[i]))
+                    .append("\n");
+            }
+            writer.close();
+            System.out.println("CSV file has been created successfully: " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // System.out.println("Plot...");
+        // PlotUtil.plot(predicts, actuals, "Multiple Predictions");
     }
 
     /** Predict all the features (open, close, low, high prices and volume) of a stock one-day ahead */
