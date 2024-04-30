@@ -87,7 +87,7 @@ public class StockPricePrediction {
 
         try {
             FileWriter writer = new FileWriter(fileName);
-            writer.append("Index,PredictedValue\n");
+            writer.append("Index,Date,PredictedValue\n");
             for (int i = 0; i < predicts.length; i++) {
                 writer.append(String.valueOf(i))
                       .append(",")
