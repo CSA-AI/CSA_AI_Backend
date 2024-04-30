@@ -1,21 +1,11 @@
 <!DOCTYPE html>
 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link th:href="@{/css/main.css}" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.css" rel="stylesheet" />
+</head>
+
 <th:block xmlns:th="http://www.w3.org/1999/xhtml" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="div">
-    <div class="drawer lg:drawer-open">
-        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
-        <div class="drawer-content flex flex-col items-center justify-center">
-          <p>test</p>
-          <label for="my-drawer-2" class="btn btn-primary drawer-button lg:hidden">Open drawer</label>
-    
-        </div> 
-        <div class="drawer-side z-40">
-          <label for="my-drawer-2" aria-label="open sidebar" class="drawer-overlay"></label> 
-          <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-            <!-- Sidebar content here -->
-            <li><a>Sidebar Item 1</a></li>
-            <li><a>Sidebar Item 2</a></li>
-          </ul>
-        
-        </div>
-    </div>
+  
 </th:block>
