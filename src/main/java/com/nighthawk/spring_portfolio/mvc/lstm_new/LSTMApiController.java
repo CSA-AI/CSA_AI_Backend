@@ -16,12 +16,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.env.Environment;
 
 import com.nighthawk.spring_portfolio.mvc.lstm_new.predict.StockPricePrediction;
 
 @RestController
 @RequestMapping("/api/lstm")
 public class LSTMApiController {
+
+    private final Environment environment;
+
+    public LSTMApiController(Environment environment) {
+        this.environment = environment;
+    }
 
     @GetMapping("/{ticker}")
     public ResponseEntity<?> getPredictions(@PathVariable String ticker) {
@@ -54,31 +61,41 @@ public class LSTMApiController {
         } else {
             File stockInfo = new File("src/main/resources/stock_data/" + ticker + ".csv");
             if (stockInfo.exists()) {
-                try {
-                    StockPricePrediction.main(new String[]{}, ticker);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return new ResponseEntity<>("Training", HttpStatus.OK);
+                File csvFile = new File("src/main/resources/predictions/" + ticker + "_predictions.csv");
+                CompletableFuture<Void> trainingFuture = CompletableFuture.runAsync(() -> {
+                    try {
+                        StockPricePrediction.main(new String[]{}, ticker);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            
+                // Wait for the training to complete
+                trainingFuture.join();
+                List<String> csvData = parseCSVFile(csvFile);
+                return new ResponseEntity<>(csvData, HttpStatus.OK);
             } else {
-                CompletableFuture.runAsync(() -> {
-                    String scriptPath = "/home/eris29/APCSA/CSA_AI_Backend/src/main/resources/pull_data.sh"; // TODO: Use a more dynamic path
+                CompletableFuture<Void> dataPullingFuture = CompletableFuture.runAsync(() -> {
+                    String currentDir = System.getProperty("user.dir");
+                    String scriptPath = currentDir +  "/src/main/resources/pull_data.sh";// TODO: Use a more dynamic path
                     System.out.println("Script path: " + scriptPath);
-
+                
                     ProcessBuilder pb = new ProcessBuilder("/bin/bash", scriptPath);
                     pb.command().add(ticker);
                     pb.directory(new File("src/main/resources/"));
-
+                
                     try {
                         Process process = pb.start();
                         int exitCode = process.waitFor();
                         System.out.println("Script exited with code: " + exitCode);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (IOException | InterruptedException e) {
                         e.printStackTrace();
                     }
                 });
+                
+                // Wait for the data pulling process to complete
+                dataPullingFuture.join();
+                
                 return new ResponseEntity<>("Pulling Data", HttpStatus.OK);
             }
         }
