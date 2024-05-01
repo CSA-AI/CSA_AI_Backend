@@ -66,6 +66,23 @@
             <artifactId>jfreechart</artifactId>
             <version>1.5.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>1.5.7</version>
+        </dependency>
+        <dependency>
+        <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg</artifactId>
+            <version>5.0-1.5.7</version> <!-- This should match the javacv version -->
+            <classifier>macosx-x86_64</classifier> <!-- Change this according to your platform -->
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg</artifactId>
+            <version>5.0-1.5.7</version> <!-- This should match the javacv version -->
+            <classifier>macosx-arm64</classifier> <!-- If you are on M1 Mac -->
+        </dependency>
         <!-- Spring -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
