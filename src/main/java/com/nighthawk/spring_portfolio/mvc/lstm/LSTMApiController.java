@@ -26,7 +26,6 @@ import com.nighthawk.spring_portfolio.mvc.lstm.*;
 @RequestMapping("/api/lstm")
 public class LSTMApiController {
     //     @Autowired
-    // private JwtTokenUtil jwtGen;
     /*
     #### RESTful API ####
     Resource: https://spring.io/guides/gs/rest-service/
