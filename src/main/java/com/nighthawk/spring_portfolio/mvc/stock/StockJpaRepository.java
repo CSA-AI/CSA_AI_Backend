@@ -16,6 +16,8 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
 
     List<Stock> findAllByOrderByNameAsc();
 
+    List<Stock> findByEmailOrderByTimeDesc(String email);
+
     Stock findFirstByNameAndOperationOrderByTimeDesc(String name, String operation);
 
     /* Custom JPA query articles, there are articles that show custom SQL as well

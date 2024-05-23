@@ -124,4 +124,17 @@ public class StockApiController {
         }
     }
 
+    /*
+     * GET trades by email
+     */
+    @GetMapping("/trades/{email}")
+    public ResponseEntity<List<Stock>> getTradesByEmail(@PathVariable String email) {
+        List<Stock> trades = repository.findByEmailOrderByTimeDesc(email);
+        if (!trades.isEmpty()) {
+            return new ResponseEntity<>(trades, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
+        }
+    }
+
 }
