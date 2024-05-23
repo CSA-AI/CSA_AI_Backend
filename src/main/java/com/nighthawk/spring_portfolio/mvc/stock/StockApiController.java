@@ -1,13 +1,17 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/stock")
@@ -70,106 +76,52 @@ public class StockApiController {
     }
 
     /*
-    POST Aa record by Requesting Parameters from URI <-- NOT NEEDED, all stocks created in backend
+     * POST request to add data for buying or selling a stock
      */
-    // @PostMapping( "/createPerson")
-    // public ResponseEntity<Object> postPerson(@RequestParam("email") String email,
-    //                                          @RequestParam("password") String password,
-    //                                          @RequestParam("name") String name,
-    //                                          @RequestParam("dob") String dobString) {
-    //     Date dob;
-    //     try {
-    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
-    //     }
-    //     // A stock object WITHOUT ID will create a new record with default roles as student
-    //     Stock stock = new Stock(email, password, name, dob);
-    //     stockDetailsService.save(stock);
-    //     return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
-    // }
+    @PostMapping("/trade")
+    public ResponseEntity<Object> buyOrSellStock(@RequestBody Stock tradeRequest) {
+        // Extract necessary information from the request body
+        String stockName = tradeRequest.getName();
+        Double cost = tradeRequest.getCost();
+        Integer shares = tradeRequest.getShares();
+        String operation = tradeRequest.getOperation();
+        LocalDateTime time = LocalDateTime.now(); // Set the current time
+        String email = tradeRequest.getEmail();
+        Double totalCost = tradeRequest.calculateTotalCost();
+        Double percentChange = null;
 
-    /*
-    The stockSearch API looks across database for partial match to term (k,v) passed by RequestEntity body
-     */
-    // @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    // public ResponseEntity<Object> stockSearch(@RequestBody final Map<String,String> map) {
-    //     // extract term from RequestEntity
-    //     String term = (String) map.get("term");
+        // Perform the operation based on the action
+        if (operation.equalsIgnoreCase("buy")) {
+            // Create a new stock instance for buying
+            Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time);
+            // Save the stock information or process it as needed
+            repository.save(stock);
+            return new ResponseEntity<>("Stock bought successfully", HttpStatus.OK);
+        } else if (operation.equalsIgnoreCase("sell")) {
+            // Retrieve the latest buy record
+            Stock previousBuy = repository.findFirstByNameAndOperationOrderByTimeDesc(stockName, "buy");
+            // Retrieve the latest sell record
+            Stock previousSell = repository.findFirstByNameAndOperationOrderByTimeDesc(stockName, "sell");
+            // Calculate net shares bought and sold
+            int netShares = (previousBuy != null ? previousBuy.getShares() : 0) - (previousSell != null ? previousSell.getShares() : 0);
+            // Check if the user owns enough shares to sell
+            if (netShares >= shares) {
+                // Calculate the percentage change
+                Double sellPrice = cost;
+                Double buyPrice = previousBuy != null ? previousBuy.getCost() : 0;
+                percentChange = previousBuy != null ? previousBuy.calculatePercentChange(sellPrice) : 0;
 
-    //     // JPA query to filter on term
-    //     List<Stock> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
-
-    //     // return resulting list and status, error checking should be added
-    //     return new ResponseEntity<>(list, HttpStatus.OK);
-    // }
-
-    /*
-    The stockStats API adds stats by Date to Person table 
-    */
-    @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Stock> stockStats(@RequestBody final Map<String,Object> stat_map) {
-    // find ID, added extra error handling bc im slow
-        // Extract Attributes from JSON
-        String[] stocks = {"AAPL", "AMZN", "COST", "GOOGL", "LMT", "META", "MSFT", "NOC", "TSLA", "UNH", "WMT"};
-        for (Map.Entry<String,Object> entry : stat_map.entrySet())  {
-            // Add all attributes other than "date" and "id" to the "attribute_map"
-            if (!entry.getKey().equals("date") && !entry.getKey().equals("id")) {
-                // Handle each stock case
-                for (String stk : stocks) {
-                    if (entry.getKey().equals(stk)) {
-                        Stock stock = repository.findByName(stk);
-                        Double cost = Double.valueOf(entry.getValue().toString());
-                        stock.setCost(cost);
-                        repository.save(stock);  // conclude by writing the stats updates
-                        // update the individual repo values
-                        break;
-                    }
-                }
+                // Create a new stock instance for selling
+                Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time);
+                // Save the stock information or process it as needed
+                repository.save(stock);
+                return new ResponseEntity<>("Stock sold successfully. Percentage change: " + percentChange + "%", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Not enough shares owned for selling", HttpStatus.BAD_REQUEST);
             }
+        } else {
+            return new ResponseEntity<>("Invalid operation", HttpStatus.BAD_REQUEST);
         }
-        // Set Date and Attributes to SQL HashMap
-        // return Person with update Stats
-        return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    // there should be no need for this, we have the previous /updateStocks endpoint for this
-    // @PutMapping("/update")
-    // public ResponseEntity<Object> putPerson(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("name") String name ) 
-    // {
-    //     Stock stock = repository.findByEmail(email);
-    //     stock.setName(name);
-    //     repository.save(stock);
-    //     return new ResponseEntity<>(email +" is updated successfully", HttpStatus.OK);
-    // }
-
-
-    /*
-     * POST Aa record by Requesting Parameters from URI <-- all stocks should be defined in the backend
-     */
-    // @PostMapping("/createAdmin")
-    // public ResponseEntity<Object> postAdminPerson(@RequestParam("email") String email,
-    //                                          @RequestParam("password") String password,
-    //                                          @RequestParam("name") String name,
-    //                                          @RequestParam("dob") String dobString,
-    //                                          @RequestParam("admin_key") String adminKey) {
-    //     Date dob;
-    //     try {
-    //         dob = new SimpleDateFormat("MM-dd-yyyy").parse(dobString);
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>(dobString +" error; try MM-dd-yyyy", HttpStatus.BAD_REQUEST);
-    //     }
-
-    //     if (System.getenv("ADMIN_KEY") == adminKey) {
-    //         Stock stock = new Stock(email, password, name, dob);
-    //         stockDetailsService.save(stock);
-    //         stockDetailsService.addRoleToPerson(email, "ROLE_ADMIN");
-    //         return new ResponseEntity<>(email +" is created successfully", HttpStatus.CREATED);
-    //     }
-
-    //     return new ResponseEntity<>("Admin key does not match", HttpStatus.BAD_REQUEST);
-
-    // }
-
 
 }
