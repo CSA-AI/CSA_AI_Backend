@@ -1,5 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -10,6 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.nighthawk.spring_portfolio.mvc.person.ClassCode;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
 import jakarta.persistence.Column;
@@ -18,10 +21,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 /*
 Stock is a POJO, Plain Old Java Object.
@@ -44,82 +54,93 @@ public class Stock {
 
     // name, share cost, roles are key attributes to login and authentication
     @NotEmpty
-    @Column(unique=true)
     private String name;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd") //should probably change to time to be more accurate
-    private Date time;
-
+    @Email
     @NotEmpty
-    private Double cost;
-    @NotEmpty
-    private Integer shares;
+    private String email;
 
     // Are we selling or buying the stock?
-    // @NotEmpty
-    // private String operation;
+    @NotEmpty
+    private String operation;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String,Map<String, Object>> stats = new HashMap<>(); 
+    @NotNull
+    @Positive
+    private Double cost;
+
+    @NotNull
+    @Positive
+    private Integer shares;
+
+    @NotNull
+    @Positive
+    private Double totalCost;
+
+    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime time;
+
+    private Double percentChange;
+
+    @NotEmpty
+    private String classCode;
 
     // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
-    public Stock(String name, Double cost, Integer shares, String operation, Date time) {
+    public Stock(String name, String email, String operation, Double cost, Integer shares, Double totalCost, Double percentChange, LocalDateTime time, String classCode) {
         this.name = name;
+        this.email = email;
+        this.operation = operation;
         this.cost = cost;
         this.shares = shares;
+        this.totalCost = totalCost;
+        this.percentChange = percentChange;
         this.time = time;
-        // this.operation = operation;
+        this.classCode = classCode;
     }
 
     // A custom getter to return cost of a transaction
-    public double getTotalCost() {
+    public double calculateTotalCost() {
         if (this.cost != null && this.shares != null) {
-            return cost*(float)shares;
+            return this.cost * this.shares;
         }
         return -1;
     }
 
-    // A custom getter to update total number of shares owned
-    public double getTotalShares() {
-        if (this.name != null && this.shares != null) {
-            // this is placeholder for now, we should get existing shares and subtract
-            return cost*(float)shares;
-        }
-        return -1;
+    public Double calculatePercentChange(Double sellPrice) {
+        // Calculate the percentage change
+        Double buyPrice = this.cost;
+        return ((sellPrice - buyPrice) / buyPrice) * 100.0;
     }
 
     // Initialize static test data 
-    public static Stock[] init() {
+    // public static Stock[] init() {
+    //     // Example of class construction
+    //     Stock s1 = new Stock();
+    //     s1.setName("AAPL");
+    //     s1.setCost(188.91);
+    //     s1.setShares(15);
+    //     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy'T'HH:mm:ss");
+    //     LocalDateTime d = LocalDateTime.parse("02-06-2024T12:00:00", formatter);
+    //     s1.setTime(d);
+    //     s1.setEmail("example@example.com");
+    //     s1.setOperation("buy");
+    //     s1.setTotalCost(s1.calculateTotalCost()); // Set total cost
+    //     s1.setClassCode(new ClassCode("CLASS123", "Sample Class", 0, 0)); // Set class code
+    //     // Array definition and data initialization
+    //     Stock[] stocks = { s1 };
+    //     return stocks;
+    // }
 
-        // basics of class construction
-        Stock s1 = new Stock();
-        s1.setName("AAPL");
-        s1.setCost(188.91);
-        s1.setShares(15);
-        Date d;
-        try {
-            d = new SimpleDateFormat("MM-dd-yyyy").parse("02-06-2024");
-            s1.setTime(d);
-        } catch (ParseException e) {
-            System.out.println("Date parse exception ======================");
-            e.printStackTrace();
-        }
-        // p1.setOperation("buy"); <-- we can set this on frontend and adjust shares to + or -. If shares is 0 we assume update
+    // public static void main(String[] args) {
+    //     // Obtain Stock objects from initializer
+    //     Stock[] stocks = init();
 
-        // Array definition and data initialization
-        Stock stocks[] = {s1};
-        return(stocks);
-    }
-
-    public static void main(String[] args) {
-        // obtain Person from initializer
-        Stock stocks[] = init();
-
-        // iterate using "enhanced for loop"
-        for( Stock stock : stocks) {
-            System.out.println(stock);  // print object
-        }
-    }
+    //     // Iterate through stocks
+    //     for(Stock stock : stocks) {
+    //         // Print stock details
+    //         System.out.println(stock);
+    //         // Print total cost
+    //         System.out.println("Total Cost: $" + stock.getTotalCost());
+    //     }
+    // }
 
 }

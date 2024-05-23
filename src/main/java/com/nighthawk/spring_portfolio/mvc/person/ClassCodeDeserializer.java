@@ -22,18 +22,24 @@ public class ClassCodeDeserializer extends StdDeserializer<ClassCode> {
             throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        JsonNode classCodeNode = node.get("ClassCode");
+        JsonNode classCodeNode = node.get("classCode");
+        JsonNode classNameNode = node.get("className");
+        JsonNode emailNode = node.get("email");
 
-        if (classCodeNode == null || classCodeNode.isNull()) {
-            throw new IOException("ClassCode field is missing or null");
+        if (classCodeNode == null || classCodeNode.isNull() || emailNode.isNull()) {
+            throw new IOException("classCode field is missing or null");
         }
 
         String classCodeValue = classCodeNode.asText().trim();
 
         if (classCodeValue.isEmpty()) {
-            throw new IOException("Invalid ClassCode value");
+            throw new IOException("Invalid classCode value");
         }
 
-        return new ClassCode(classCodeValue);
+        String classNameValue = classNameNode != null && !classNameNode.isNull() ? classNameNode.asText().trim() : "";
+
+        String emailValue = emailNode != null && !emailNode.isNull() ? emailNode.asText().trim() : "";
+
+        return new ClassCode(classCodeValue, classNameValue, emailValue, 100000.00, 100000.00);
     }
 }
