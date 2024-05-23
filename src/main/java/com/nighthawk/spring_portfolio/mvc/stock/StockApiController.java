@@ -85,7 +85,7 @@ public class StockApiController {
         Double cost = tradeRequest.getCost();
         Integer shares = tradeRequest.getShares();
         String operation = tradeRequest.getOperation();
-        LocalDateTime time = LocalDateTime.now(); // Set the current time
+        LocalDateTime time = tradeRequest.getTime(); // Set the current time
         String email = tradeRequest.getEmail();
         Double totalCost = tradeRequest.calculateTotalCost();
         Double percentChange = null;
