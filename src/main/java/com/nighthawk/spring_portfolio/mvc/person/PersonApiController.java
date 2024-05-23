@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -47,7 +46,9 @@ public class PersonApiController {
 
     @GetMapping("/")
     public ResponseEntity<List<Person>> getPeople() {
-        return new ResponseEntity<>(repository.findAllByOrderByNameAsc(), HttpStatus.OK);
+        List<Person> people = repository.findAll();
+        people.sort((p1, p2) -> p1.getPerformanceObject().getRating().compareTo(p2.getPerformanceObject().getRating()));
+        return new ResponseEntity<>(people, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -72,7 +73,7 @@ public class PersonApiController {
     public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
             personDetailsService.save(person);
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -80,7 +81,6 @@ public class PersonApiController {
         }
     }
 
-    // In your controller class
     @PostMapping("/createCode")
     public ResponseEntity<Object> createCode(@RequestBody CreateCodeRequest request) {
         Person person = repository.findByEmail(request.getEmail());
@@ -98,7 +98,6 @@ public class PersonApiController {
         String classCode = generateUniqueClassCode();
         ClassCode newCode = new ClassCode(classCode, request.getClassName(), request.getEmail(), 100000.00, 100000.00);
         
-        // Set creator's email
         newCode.setEmail(request.getEmail());
         
         person.addClassCode(newCode);
@@ -137,9 +136,7 @@ public class PersonApiController {
             return new ResponseEntity<>(Map.of("error", "Class code not found"), HttpStatus.NOT_FOUND);
         }
 
-        // Get the class name from the class code entity
         String className = classCodeEntity.getClassName();
-
         ClassCode newCode = new ClassCode(request.getClassCode(), className, request.getEmail(), 100000.00, 100000.00);
 
         person.addClassCode(classCodeEntity);
@@ -155,14 +152,12 @@ public class PersonApiController {
         if (!codes.isEmpty()) {
             return new ResponseEntity<>(codes, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping("/class/{classCode}/{email}")
     public ResponseEntity<ClassCode> getClassCodeByEmailAndClassCode(@PathVariable String classCode, @PathVariable String email) {
-        // Use classCode and email to fetch the data
-        // Assuming you have a method to fetch data based on classCode and email from your repository
         ClassCode classData = classCodeRepository.findByClassCodeAndEmail(classCode, email);
         if (classData != null) {
             return new ResponseEntity<>(classData, HttpStatus.OK);
@@ -170,18 +165,6 @@ public class PersonApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-    // @GetMapping("/teachers/{classCode}")
-    // public ResponseEntity<Set<Person>> getTeachersByClassCode(@PathVariable String classCode) {
-    //     // Find teachers and admins by class code
-    //     List<Person> teachersAndAdmins = repository.findTeachersAndAdminsByClassCode(classCode, "teacher");
-
-    //     if (!teachersAndAdmins.isEmpty()) {
-    //         return new ResponseEntity<>(new HashSet<>(teachersAndAdmins), HttpStatus.OK);
-    //     } else {
-    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No teachers or admins found for the given class code
-    //     }
-    // }
 
     @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> personSearch(@RequestBody final Map<String, String> map) {
@@ -208,17 +191,18 @@ public class PersonApiController {
             person.setPassword(personRequest.getPassword());
             person.setName(personRequest.getName());
             person.setDob(personRequest.getDob());
+            person.setPerformanceObject(personRequest.getPerformanceObject());
             repository.save(person);
-            return new ResponseEntity<>(Map.of("message", email + " is updated successfully"), HttpStatus.OK);
+            return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/createAdmin")
     public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
@@ -231,7 +215,7 @@ public class PersonApiController {
     public ResponseEntity<Object> postTeacherPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_TEACHER");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully as a teacher"), HttpStatus.CREATED);

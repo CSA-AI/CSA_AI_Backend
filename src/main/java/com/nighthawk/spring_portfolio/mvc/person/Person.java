@@ -28,6 +28,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -38,21 +39,14 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
 
-
-/*
-Person is a POJO, Plain Old Java Object.
-First set of annotations add functionality to POJO
---- @Setter @Getter @ToString @NoArgsConstructor @RequiredArgsConstructor
-The last annotation connect to database
---- @Entity
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @EqualsAndHashCode(exclude = {"classCodes", "roles", "stats"})
-@Convert(attributeName ="person", converter = JsonType.class)
+@Convert(attributeName = "person", converter = JsonType.class)
 public class Person {
 
     // automatic unique identifier for Person record
@@ -70,7 +64,6 @@ public class Person {
     @NotEmpty
     private String password;
 
-    // @NonNull, etc placed in params of constructor: "@NonNull @Size(min = 2, max = 30, message = "Name (2 to 30 chars)") String name"
     @NonNull
     @Size(min = 2, max = 30, message = "Name (2 to 30 chars)")
     private String name;
@@ -79,18 +72,9 @@ public class Person {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dob;
 
-    // To be implemented
     @ManyToMany(fetch = EAGER)
     private Collection<PersonRole> roles = new ArrayList<>();
 
-    /* HashMap is used to store JSON for daily "stats"
-    "stats": {
-        "2022-11-13": {
-            "calories": 2200,
-            "steps": 8000
-        }
-    }
-    */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
@@ -101,30 +85,25 @@ public class Person {
     @Column
 	private String ImageEncoder;
 
-    // public void addClassCode(ClassCode ClassCode) {
-    //     this.classCodes.add(ClassCode);
-    //     ClassCode.setPerson(this);
-    // }
+    @Column 
+    private double rating;
+
+    @OneToOne
+    private PerformanceObject performanceObject;
+
+    public void addClassCode(ClassCode classCode) {
+        this.classCodes.add(classCode);
+        classCode.setPerson(this);
+    }
     
     // Constructor used when building object from an API
-    public Person(String email, String password, String name, Date dob) {
+    public Person(String email, String password, String name, Date dob, double rating) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.dob = dob;
         this.ImageEncoder = null;
-    }
-
-    public void addClassCode(ClassCode classCode) {
-        if (classCode != null) {
-            Set<Person> persons = classCode.getPersons();
-            if (persons == null) {
-                persons = new HashSet<>();
-                classCode.setPersons(persons); // Assuming there's a setter
-            }
-            persons.add(this);
-            classCodes.add(classCode);
-        }
+        this.rating = rating; 
     }
 
     // A custom getter to return age from dob attribute
@@ -143,8 +122,7 @@ public class Person {
         p1.setName("Thomas Edison");
         p1.setEmail("toby@gmail.com");
         p1.setPassword("123Toby!");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
+        try {
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1840");
             p1.setDob(d);
         } catch (Exception e) {
@@ -155,8 +133,7 @@ public class Person {
         p2.setName("Hop");
         p2.setEmail("hop@gmail.com");
         p2.setPassword("123hop");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
+        try {
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("04-02-2003");
             p2.setDob(d);
         } catch (Exception e) {
@@ -167,28 +144,22 @@ public class Person {
         p3.setName("Admin");
         p3.setEmail("global@csaai.com");
         p3.setPassword("csaAIadmin@8017");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
+        try {
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("05-18-1970");
             p3.setDob(d);
         } catch (Exception e) {
             // no actions as dob default is good enough
         }
 
-
-        // Array definition and data initialization
-        Person persons[] = {p1, p2, p3};
-        return(persons);
+        Person[] persons = {p1, p2, p3};
+        return persons;
     }
 
     public static void main(String[] args) {
-        // obtain Person from initializer
-        Person persons[] = init();
+        Person[] persons = init();
 
-        // iterate using "enhanced for loop"
-        for( Person person : persons) {
-            System.out.println(person);  // print object
+        for (Person person : persons) {
+            System.out.println(person);
         }
     }
-
 }

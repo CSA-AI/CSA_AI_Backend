@@ -79,6 +79,10 @@ public class ClassCode {
         this.buyingPower = buyingPower;
     }
 
+    public void setPerson(Person person) {
+        this.persons.add(person);
+    }
+
     public static ClassCode[] init() {
 
         // basics of class construction
@@ -89,18 +93,17 @@ public class ClassCode {
         c1.setTotalAccountValue(0);
         c1.setBuyingPower(0);
 
-
         // Array definition and data initialization
-        ClassCode codes[] = {c1};
-        return(codes);
+        ClassCode[] codes = {c1};
+        return codes;
     }
 
     public static void main(String[] args) {
         // obtain Person from initializer
-        ClassCode codes[] = init();
+        ClassCode[] codes = init();
 
         // iterate using "enhanced for loop"
-        for( ClassCode code : codes) {
+        for (ClassCode code : codes) {
             System.out.println(code);  // print object
         }
     }

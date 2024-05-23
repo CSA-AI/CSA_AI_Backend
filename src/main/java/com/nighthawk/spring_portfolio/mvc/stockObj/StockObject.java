@@ -1,60 +1,36 @@
 package com.nighthawk.spring_portfolio.mvc.stockObj;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Comparator;
-import java.util.Iterator;
-
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
+import java.util.*;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/*
-Stock is a POJO, Plain Old Java Object.
-First set of annotations add functionality to POJO
---- @Setter @Getter @ToString @NoArgsConstructor @RequiredArgsConstructor
-The last annotation connect to database
---- @Entity
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Convert(attributeName ="StockObject", converter = JsonType.class)
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class StockObject extends StockCollectable implements Iterable<StockObject> {
     public enum KeyType implements KeyTypes {ticker, growth, open, high, low, volume}
     public static KeyTypes key = KeyType.growth;
-	public void setOrder(KeyTypes key) {StockObject.key = key;}
-	
+
+    public void setOrder(KeyTypes key) { StockObject.key = key; }
 
     private String sortingKey = "growth";
 
-    // automatic unique identifier for Stock record
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    // name, share cost, roles are key attributes to login and authentication
     @NotEmpty
     @Column(unique=true)
     private String ticker;
 
-    // Next 7 days
     @NotEmpty
     @Column()
     private List<Double> predictions;
@@ -74,18 +50,13 @@ public class StockObject extends StockCollectable implements Iterable<StockObjec
     @Column()
     private Integer volume;
 
-    // Are we selling or buying the stock?
-    // @NotEmpty
-    // private String operation;
+    @Type(type = "json")
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Map<String, Object>> stats = new HashMap<>();
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "json")
-    private Map<String,Map<String, Object>> stats = new HashMap<>(); 
-
-    // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
     public StockObject(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
         this.ticker = ticker;
-        this.predictionsPercentGrowth = 100*((predictions.get(predictions.size()-1)-predictions.get(0))/predictions.get(0));
+        this.predictionsPercentGrowth = 100 * ((predictions.get(predictions.size()-1) - predictions.get(0)) / predictions.get(0));
         this.predictions = predictions;
         this.open = open;
         this.high = high;
@@ -95,147 +66,72 @@ public class StockObject extends StockCollectable implements Iterable<StockObjec
 
     @Override
     public String toString() {
-        if (KeyType.growth.equals(StockObject.key)) {
-            return "(" + Double.toString(this.predictionsPercentGrowth) + ")";
-        } else if (KeyType.open.equals(StockObject.key)) {
-            return "(" + Double.toString(this.open) + ")";
-        } else if (KeyType.high.equals(StockObject.key)) {
-            return "(" + Double.toString(this.high) + ")";
-        } else if (KeyType.low.equals(StockObject.key)) {
-            return "(" + Double.toString(this.low) + ")";
-        } else if (KeyType.volume.equals(StockObject.key)) {
-            return "(" + Integer.toString(this.volume) + ")";
-        } else if (KeyType.ticker.equals(StockObject.key)) {
-            return "(" + this.ticker + ")";
+        switch (StockObject.key) {
+            case growth:
+                return "(" + this.predictionsPercentGrowth + ")";
+            case open:
+                return "(" + this.open + ")";
+            case high:
+                return "(" + this.high + ")";
+            case low:
+                return "(" + this.low + ")";
+            case volume:
+                return "(" + this.volume + ")";
+            case ticker:
+                return "(" + this.ticker + ")";
+            default:
+                return "Invalid Key";
         }
-        return "Invalid Key";
     }
 
     @Override
     public int compareTo(StockCollectable stockObj) {
         if (KeyType.growth.equals(StockObject.key)) {
-            if (this.predictionsPercentGrowth < stockObj.getPredictionsPercentGrowth()) {
-                return -1;
-            } else if (this.predictionsPercentGrowth > stockObj.getPredictionsPercentGrowth()) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return Double.compare(this.predictionsPercentGrowth, stockObj.getPredictionsPercentGrowth());
         }
         return this.toString().compareTo(stockObj.toString());
     }
 
     @Override
-	protected KeyTypes getKey() { return StockObject.key; }
+    protected KeyTypes getKey() {
+        return StockObject.key;
+    }
 
     @Override
     public Iterator<StockObject> iterator() {
-        List<StockObject> sortedList = new ArrayList<>(Arrays.asList(this));
+        List<StockObject> sortedList = new ArrayList<>(Collections.singletonList(this));
         sortedList.sort(Comparator.naturalOrder());
         return sortedList.iterator();
     }
 
-
-
-    // Initialize static test data 
     public static StockObjectIterator init() {
+        List<StockObject> stocks = Arrays.asList(
+            new StockObject("AAPL", Arrays.asList(142.99561458906226, 142.3356784361008, 141.50459141585998, 140.79398885479813, 140.47584765445805, 140.23916870412728, 140.11506605762875, 140.0125428931567, 139.9225949921048, 139.32808085155676, 138.7347217024006), 189.33, 191.95, 188.82, 68741000),
+            new StockObject("AMZN", Arrays.asList(148.4352713167924, 147.61149145957563, 145.7654599777758, 145.07767187569817, 145.84473604843305, 146.91743106217368, 148.545180041023, 149.84658193585875, 150.23739673132195, 149.77908850448154, 148.89995122391826), 187.43, 188.69, 183.0, 47982300),
+            new StockObject("GOOGL", Arrays.asList(144.03847213115716, 143.97275721147298, 143.46220418652598, 142.8551557002012, 143.26608690917908, 144.05321693272734, 145.0575846909044, 145.66746972928823, 146.0591949340767, 146.23636088218686, 145.72402513257114), 158.86, 159.24, 154.59, 27114700),
+            new StockObject("UNH", Arrays.asList(420.57514359699985, 424.45181401054697, 424.708468663571, 421.5919983479373, 419.9645489769723, 421.6644885934479, 421.99125676262156, 421.68257100737014, 411.53663454488947, 413.52836586737476, 415.7230184885468), 442.0, 448.35, 441.99, 5372400)
+        );
 
-        // basics of class construction
-        ArrayList<Double> s1Predictions = new ArrayList<Double>() {
-            {
-            add(142.99561458906226);
-            add(142.3356784361008);
-            add(141.50459141585998);
-            add(140.79398885479813);
-            add(140.47584765445805);
-            add(140.23916870412728);
-            add(140.11506605762875);
-            add(140.0125428931567);
-            add(139.9225949921048);
-            add(139.32808085155676);
-            add(138.7347217024006);
-            }
-        };
-        ArrayList<Double> s2Predictions = new ArrayList<Double>() {
-            {
-            add(148.4352713167924);
-            add(147.61149145957563);
-            add(145.7654599777758);
-            add(145.07767187569817);
-            add(145.84473604843305);
-            add(146.91743106217368);
-            add(148.545180041023);
-            add(149.84658193585875);
-            add(150.23739673132195);
-            add(149.77908850448154);
-            add(148.89995122391826);
-            }
-        };
-        ArrayList<Double> s3Predictions = new ArrayList<Double>() {
-            {
-            add(144.03847213115716);
-            add(143.97275721147298);
-            add(143.46220418652598);
-            add(142.8551557002012);
-            add(143.26608690917908);
-            add(144.05321693272734);
-            add(145.0575846909044);
-            add(145.66746972928823);
-            add(146.0591949340767);
-            add(146.23636088218686);
-            add(145.72402513257114);
-            }
-        };
-        ArrayList<Double> s4Predictions = new ArrayList<Double>() {
-            {
-            add(420.57514359699985);
-            add(424.45181401054697);
-            add(424.708468663571);
-            add(421.5919983479373);
-            add(419.9645489769723);
-            add(421.6644885934479);
-            add(421.99125676262156);
-            add(421.68257100737014);
-            add(411.53663454488947);
-            add(413.52836586737476);
-            add(415.7230184885468);
-            }
-        };
-        StockObject s1 = new StockObject("AAPL", s1Predictions, 189.3300018310547, 191.9499969482422, 188.82000732421875, 68741000);
-        StockObject s2 = new StockObject("AMZN", s2Predictions, 187.42999267578125, 188.69000244140625, 183.0, 47982300);
-        StockObject s3 = new StockObject("GOOGL", s3Predictions, 158.86000061035156, 159.24000549316406, 154.58999633789062, 27114700);
-        StockObject s4 = new StockObject("UNH", s4Predictions, 442.0, 448.3500061035156, 441.989990234375, 5372400);
-        StockObject stocks[] = {s1, s2, s3, s4};
-        ArrayList<StockObject> stocksList = new ArrayList<StockObject>(Arrays.asList(stocks));
-        StockObjectIterator sIterator = new StockObjectIterator(stocksList);
-        return sIterator;
+        return new StockObjectIterator(new ArrayList<>(stocks));
     }
 
     public static void main(String[] args) {
-        // obtain Person from initializer
         StockObjectIterator stocks = init();
-
-        // iterate using "enhanced for loop"
-        for( StockObject stock : stocks) {
-            System.out.println(stock);  // print object
+        for (StockObject stock : stocks) {
+            System.out.println(stock);
         }
 
-        stocks.mergeSort(0, stocks.size()-1);
+        stocks.mergeSort(0, stocks.size() - 1);
         System.out.println();
-
-        // iterate using "enhanced for loop"
-        for( StockObject stock : stocks) {
-            System.out.println(stock);  // print object
+        for (StockObject stock : stocks) {
+            System.out.println(stock);
         }
 
         stocks.setKeyType(KeyType.ticker);
-        stocks.mergeSort(0, stocks.size()-1);
+        stocks.mergeSort(0, stocks.size() - 1);
         System.out.println();
-
-        // iterate using "enhanced for loop"
-        for( StockObject stock : stocks) {
-            System.out.println(stock);  // print object
+        for (StockObject stock : stocks) {
+            System.out.println(stock);
         }
     }
-
 }
