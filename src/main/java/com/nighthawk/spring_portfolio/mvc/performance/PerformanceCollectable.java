@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.stockObj;
+package com.nighthawk.spring_portfolio.mvc.performance;
 
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -9,14 +9,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class PerformanceCollectable implements Comparable<StockCollectable> {
-    public final String masterType = "StockCollectable";
-	private String type;
-    private String ticker;
-    private List<Double> predictions;
-    private Double predictionsPercentGrowth;
-    private Double open;
-    private Double high;
-    private Double low;
+    public final String masterType = "Performance";
+	private String username;
+    private int rank;
+    private Double value;
+    private Double growth;
+    private String rating;
 
 
     private Integer volume;
@@ -49,12 +47,12 @@ public abstract class PerformanceCollectable implements Comparable<StockCollecta
 	public abstract String toString();
 
 	// this method is used to compare toString of objects
-	public int compareTo(StockCollectable obj) {
+	public int compareTo(Performance obj) {
 		return this.toString().compareTo(obj.toString());
 	}
 
     // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
-    public StockCollectable(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
+    public Performance(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
         this.ticker = ticker;
         this.predictionsPercentGrowth = 100*((predictions.get(predictions.size()-1)-predictions.get(0))/predictions.get(0));
         this.predictions = predictions;

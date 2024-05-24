@@ -100,19 +100,23 @@ public class Person {
     @Column 
     private double rating;
 
+    @Column
+    private int price;
+
     public void addClassCode(ClassCode ClassCode) {
         this.classCodes.add(ClassCode);
         ClassCode.setPerson(this);
     }
     
     // Constructor used when building object from an API
-    public Person(String email, String password, String name, Date dob, double rating) {
+    public Person(String email, String password, String name, Date dob, double rating, int price) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.dob = dob;
         this.ImageEncoder = null;
         this.rating = rating; 
+        this.price = price;
     }
 
     // A custom getter to return age from dob attribute

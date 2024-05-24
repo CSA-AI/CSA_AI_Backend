@@ -72,7 +72,7 @@ public class PersonApiController {
     public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating(), personRequest.getPrice());
             personDetailsService.save(person);
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -159,7 +159,7 @@ public class PersonApiController {
     public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating(), personRequest.getPrice());
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
