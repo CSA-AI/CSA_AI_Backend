@@ -2,7 +2,7 @@ package com.nighthawk.spring_portfolio.mvc.stockObj;
 
 import java.util.List;
 
-public class StockMergeSort {
+public class PerformanceSort {
 
     // Method to sort the list of StockObjects
     public static void mergeSort(List<StockObject> stocks) {
