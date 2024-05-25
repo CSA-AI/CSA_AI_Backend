@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -135,6 +137,43 @@ public class StockApiController {
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
         }
+    }
+
+    /*
+     * GET trades by email
+     */
+    @GetMapping("/tickers/{email}")
+    public ResponseEntity<List<String>> getTickersByEmail(@PathVariable String email) {
+        List<Stock> trades = repository.findByEmailOrderByTimeDesc(email);
+        if (trades.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
+        }
+
+        // Map to keep track of the net shares for each ticker
+        Map<String, Integer> tickerSharesMap = new HashMap<>();
+
+        // Aggregate shares for each ticker
+        for (Stock trade : trades) {
+            String ticker = trade.getName();
+            int shares = trade.getShares();
+            String operation = trade.getOperation();
+            int currentShares = tickerSharesMap.getOrDefault(ticker, 0);
+            if (operation.equals("buy")) {
+                tickerSharesMap.put(ticker, currentShares + shares);
+            } else {
+                tickerSharesMap.put(ticker, currentShares - shares);
+            }
+        }
+
+        // List to hold tickers with positive net shares
+        List<String> positiveTickers = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : tickerSharesMap.entrySet()) {
+            if (entry.getValue() > 0) {
+                positiveTickers.add(entry.getKey());
+            }
+        }
+
+        return new ResponseEntity<>(positiveTickers, HttpStatus.OK);
     }
 
 }

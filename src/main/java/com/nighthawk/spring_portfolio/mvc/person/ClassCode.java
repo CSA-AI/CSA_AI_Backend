@@ -11,6 +11,8 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.ManyToMany;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -25,10 +27,17 @@ public class ClassCode {
     @NonNull
     private String classCode;
 
-    @ManyToOne
-    private Person person;
+    @NonNull
+    private String className;
 
-    public ClassCode(String classCode) {
+    @ManyToOne
+    private Person person; // Assuming this is the person related to this ClassCode
+
+    @ManyToMany
+    private Set<Person> teachers;
+
+    public ClassCode(String classCode, String className) {
         this.classCode = classCode;
+        this.className = className;
     }
 }

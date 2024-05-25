@@ -80,19 +80,29 @@ public class PersonApiController {
         }
     }
 
+    // In your controller class
     @PostMapping("/createCode")
-    public ResponseEntity<Object> createCode(@RequestParam("email") String email) {
-        Person person = repository.findByEmail(email);
+    public ResponseEntity<Object> createCode(@RequestBody CreateCodeRequest request) {
+        Person person = repository.findByEmail(request.getEmail());
         if (person == null) {
             return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
         }
+
+        boolean isTeacher = person.getRoles().stream()
+            .anyMatch(role -> role.getName().equals("ROLE_TEACHER"));
+        
+        if (!isTeacher) {
+            return new ResponseEntity<>(Map.of("error", "Person is not a teacher"), HttpStatus.FORBIDDEN);
+        }
+
         String classCode = generateUniqueClassCode();
-        ClassCode newCode = new ClassCode(classCode);
+        ClassCode newCode = new ClassCode(classCode, request.getClassName());
         person.addClassCode(newCode);
         newCode.setPerson(person);
         classCodeRepository.save(newCode);
         personDetailsService.save(person);
-        return new ResponseEntity<>(Map.of("message", email + " New code generated: " + classCode), HttpStatus.OK);
+
+        return new ResponseEntity<>(Map.of("message", request.getEmail() + " New code generated: " + classCode), HttpStatus.OK);
     }
 
     private String generateUniqueClassCode() {
@@ -163,6 +173,19 @@ public class PersonApiController {
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/createTeacher")
+    public ResponseEntity<Object> postTeacherPerson(@RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob);
+            personDetailsService.save(person);
+            personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_TEACHER");
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully as a teacher"), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
