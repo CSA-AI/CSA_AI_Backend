@@ -24,8 +24,9 @@ public class ClassCodeDeserializer extends StdDeserializer<ClassCode> {
 
         JsonNode classCodeNode = node.get("classCode");
         JsonNode classNameNode = node.get("className");
+        JsonNode emailNode = node.get("email");
 
-        if (classCodeNode == null || classCodeNode.isNull()) {
+        if (classCodeNode == null || classCodeNode.isNull() || emailNode.isNull()) {
             throw new IOException("classCode field is missing or null");
         }
 
@@ -37,6 +38,8 @@ public class ClassCodeDeserializer extends StdDeserializer<ClassCode> {
 
         String classNameValue = classNameNode != null && !classNameNode.isNull() ? classNameNode.asText().trim() : "";
 
-        return new ClassCode(classCodeValue, classNameValue);
+        String emailValue = emailNode != null && !emailNode.isNull() ? emailNode.asText().trim() : "";
+
+        return new ClassCode(classCodeValue, classNameValue, emailValue, 100000.00, 100000.00);
     }
 }

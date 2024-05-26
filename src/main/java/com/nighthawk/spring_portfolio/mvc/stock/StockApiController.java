@@ -1,6 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.stock;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -8,7 +9,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +25,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.nighthawk.spring_portfolio.mvc.person.ClassCode;
+import com.nighthawk.spring_portfolio.mvc.person.ClassCodeJpaRepository;
 
 import org.springframework.security.core.Authentication;
 
@@ -37,6 +46,8 @@ public class StockApiController {
     // Autowired enables Control to connect POJO Object through JPA
     @Autowired
     private StockJpaRepository repository;
+
+    private ClassCodeJpaRepository classCodeRepository;
 
     @Autowired
 
@@ -91,11 +102,12 @@ public class StockApiController {
         String email = tradeRequest.getEmail();
         Double totalCost = tradeRequest.calculateTotalCost();
         Double percentChange = null;
+        String classCode = tradeRequest.getClassCode(); // Get the ClassCode object directly
 
         // Perform the operation based on the action
         if (operation.equalsIgnoreCase("buy")) {
             // Create a new stock instance for buying
-            Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time);
+            Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time, classCode);
             // Save the stock information or process it as needed
             repository.save(stock);
             return new ResponseEntity<>("Stock bought successfully", HttpStatus.OK);
@@ -114,12 +126,12 @@ public class StockApiController {
                 percentChange = previousBuy != null ? previousBuy.calculatePercentChange(sellPrice) : 0;
 
                 // Create a new stock instance for selling
-                Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time);
+                Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time, classCode);
                 // Save the stock information or process it as needed
                 repository.save(stock);
                 return new ResponseEntity<>("Stock sold successfully. Percentage change: " + percentChange + "%", HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("Not enough shares owned for selling", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("Not enough shares owned for selling. Total shares owned: " + netShares, HttpStatus.BAD_REQUEST);
             }
         } else {
             return new ResponseEntity<>("Invalid operation", HttpStatus.BAD_REQUEST);
@@ -138,6 +150,37 @@ public class StockApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
         }
     }
+
+    // @GetMapping("/accountValueChange/{email}")
+    // public ResponseEntity<ObjectNode> getAccountValueChangeForDay(
+    //         @PathVariable String email,
+    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        
+    //     // Retrieve transactions for the specified email and date from the database
+    //     List<Stock> transactions = repository.findByEmailAndTimeBetween(email, date.atStartOfDay(), date.atTime(23, 59, 59));
+
+    //     // Calculate the change in account value based on the transactions
+    //     double totalChange = 0.0;
+    //     for (Stock transaction : transactions) {
+    //         if (transaction.getOperation().equalsIgnoreCase("buy")) {
+    //             // Add the transaction's total cost for buying stocks
+    //             totalChange -= transaction.getTotalCost();
+    //         } else if (transaction.getOperation().equalsIgnoreCase("sell")) {
+    //             // Subtract the transaction's total cost for selling stocks
+    //             totalChange += transaction.getTotalCost();
+    //         }
+    //     }
+
+    //     // Create JSON response
+    //     ObjectMapper objectMapper = new ObjectMapper();
+    //     ObjectNode response = objectMapper.createObjectNode();
+    //     response.put("email", email);
+    //     response.put("date", date.toString());
+    //     response.put("totalChange", totalChange);
+
+    //     // Return the JSON response
+    //     return new ResponseEntity<>(response, HttpStatus.OK);
+    // }
 
     /*
      * GET trades by email

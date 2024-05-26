@@ -12,6 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.nighthawk.spring_portfolio.mvc.person.ClassCode;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
 import jakarta.persistence.Column;
@@ -20,6 +21,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.DecimalMin;
@@ -79,8 +81,11 @@ public class Stock {
 
     private Double percentChange;
 
+    @NotEmpty
+    private String classCode;
+
     // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
-    public Stock(String name, String email, String operation, Double cost, Integer shares, Double totalCost, Double percentChange, LocalDateTime time) {
+    public Stock(String name, String email, String operation, Double cost, Integer shares, Double totalCost, Double percentChange, LocalDateTime time, String classCode) {
         this.name = name;
         this.email = email;
         this.operation = operation;
@@ -89,6 +94,7 @@ public class Stock {
         this.totalCost = totalCost;
         this.percentChange = percentChange;
         this.time = time;
+        this.classCode = classCode;
     }
 
     // A custom getter to return cost of a transaction
@@ -106,34 +112,35 @@ public class Stock {
     }
 
     // Initialize static test data 
-    public static Stock[] init() {
-        // Example of class construction
-        Stock s1 = new Stock();
-        s1.setName("AAPL");
-        s1.setCost(188.91);
-        s1.setShares(15);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy'T'HH:mm:ss");
-        LocalDateTime d = LocalDateTime.parse("02-06-2024T12:00:00", formatter);
-        s1.setTime(d);
-        s1.setEmail("example@example.com");
-        s1.setOperation("buy");
-        s1.setTotalCost(s1.calculateTotalCost()); // Set total cost
-        // Array definition and data initialization
-        Stock[] stocks = { s1 };
-        return stocks;
-    }
+    // public static Stock[] init() {
+    //     // Example of class construction
+    //     Stock s1 = new Stock();
+    //     s1.setName("AAPL");
+    //     s1.setCost(188.91);
+    //     s1.setShares(15);
+    //     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy'T'HH:mm:ss");
+    //     LocalDateTime d = LocalDateTime.parse("02-06-2024T12:00:00", formatter);
+    //     s1.setTime(d);
+    //     s1.setEmail("example@example.com");
+    //     s1.setOperation("buy");
+    //     s1.setTotalCost(s1.calculateTotalCost()); // Set total cost
+    //     s1.setClassCode(new ClassCode("CLASS123", "Sample Class", 0, 0)); // Set class code
+    //     // Array definition and data initialization
+    //     Stock[] stocks = { s1 };
+    //     return stocks;
+    // }
 
-    public static void main(String[] args) {
-        // Obtain Stock objects from initializer
-        Stock[] stocks = init();
+    // public static void main(String[] args) {
+    //     // Obtain Stock objects from initializer
+    //     Stock[] stocks = init();
 
-        // Iterate through stocks
-        for(Stock stock : stocks) {
-            // Print stock details
-            System.out.println(stock);
-            // Print total cost
-            System.out.println("Total Cost: $" + stock.getTotalCost());
-        }
-    }
+    //     // Iterate through stocks
+    //     for(Stock stock : stocks) {
+    //         // Print stock details
+    //         System.out.println(stock);
+    //         // Print total cost
+    //         System.out.println("Total Cost: $" + stock.getTotalCost());
+    //     }
+    // }
 
 }

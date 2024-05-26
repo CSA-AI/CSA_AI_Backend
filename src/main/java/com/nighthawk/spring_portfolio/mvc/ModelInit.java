@@ -14,6 +14,9 @@ import com.nighthawk.spring_portfolio.mvc.stockObj.StockObject;
 import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectDetailsService;
 import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectIterator;
 import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.person.ClassCode;
+import com.nighthawk.spring_portfolio.mvc.person.ClassCodeService;
+import com.nighthawk.spring_portfolio.mvc.person.ClassCodeJpaRepository;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -22,6 +25,8 @@ import java.util.ArrayList;
 @Configuration // Scans Application for ModelInit Bean, this detects CommandLineRunner
 public class ModelInit {  
     @Autowired PersonDetailsService personService;
+    @Autowired ClassCodeService codeService;
+    @Autowired ClassCodeJpaRepository classCodeRepository;
     @Autowired StockObjectDetailsService stockObjectService;
     @Autowired PersonRoleJpaRepository roleRepo;
 
@@ -53,8 +58,16 @@ public class ModelInit {
                     
                 }
             }
-            for (int i = 1; i <= 2 && i < personArray.length; i++) {
+            for (int i = 1; i <= 3 && i < personArray.length; i++) {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
+            }
+
+            ClassCode existingClassCode = classCodeRepository.findByClassCode("CSA-AI");
+            if (existingClassCode == null) {
+                ClassCode[] codes = ClassCode.init();
+                for (ClassCode code : codes) {
+                    codeService.save(code);
+                }
             }
 
             StockObjectIterator stockObjectArray = StockObject.init();
