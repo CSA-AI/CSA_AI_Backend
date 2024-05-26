@@ -47,7 +47,9 @@ public class PersonApiController {
 
     @GetMapping("/")
     public ResponseEntity<List<Person>> getPeople() {
-        return new ResponseEntity<>(repository.findAllByOrderByNameAsc(), HttpStatus.OK);
+        List<Person> people = repository.findAll();
+        people.sort((p1, p2) -> p1.getPerformanceObject().getRating().compareTo(p2.getPerformanceObject().getRating()));
+        return new ResponseEntity<>(people, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -56,6 +58,7 @@ public class PersonApiController {
         return optional.map(person -> new ResponseEntity<>(person, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
+
 
     @Transactional
     @DeleteMapping("/delete")
@@ -72,7 +75,7 @@ public class PersonApiController {
     public ResponseEntity<Object> postPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating(), personRequest.getPrice());
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
             personDetailsService.save(person);
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -149,17 +152,18 @@ public class PersonApiController {
             person.setPassword(personRequest.getPassword());
             person.setName(personRequest.getName());
             person.setDob(personRequest.getDob());
+            person.setPerformanceObject(personRequest.getPerformanceObject());
             repository.save(person);
-            return new ResponseEntity<>(Map.of("message", email + " is updated successfully"), HttpStatus.OK);
+            return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/createAdmin")
     public ResponseEntity<Object> postAdminPerson(@RequestBody Person personRequest) {
         try {
             Date dob = personRequest.getDob();
-            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating(), personRequest.getPrice());
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
