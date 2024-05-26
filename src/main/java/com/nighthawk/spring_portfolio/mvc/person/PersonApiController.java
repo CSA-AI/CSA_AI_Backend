@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -169,6 +170,18 @@ public class PersonApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    // @GetMapping("/teachers/{classCode}")
+    // public ResponseEntity<Set<Person>> getTeachersByClassCode(@PathVariable String classCode) {
+    //     // Find teachers and admins by class code
+    //     List<Person> teachersAndAdmins = repository.findTeachersAndAdminsByClassCode(classCode, "teacher");
+
+    //     if (!teachersAndAdmins.isEmpty()) {
+    //         return new ResponseEntity<>(new HashSet<>(teachersAndAdmins), HttpStatus.OK);
+    //     } else {
+    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No teachers or admins found for the given class code
+    //     }
+    // }
 
     @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> personSearch(@RequestBody final Map<String, String> map) {

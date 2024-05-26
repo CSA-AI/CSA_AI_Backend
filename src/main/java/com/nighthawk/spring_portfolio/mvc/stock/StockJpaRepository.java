@@ -23,6 +23,10 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
 
     Stock findFirstByNameAndOperationOrderByTimeDesc(String name, String operation);
 
+    List<Stock> findAllByNameAndOperationOrderByTimeDesc(String name, String operation);
+
+    List<Stock> findByClassCodeAndEmailAndTimeBetween(String classCode, String email, LocalDateTime startTime, LocalDateTime endTime);
+
     /* Custom JPA query articles, there are articles that show custom SQL as well
        https://springframework.guru/spring-data-jpa-query/
        https://docs.spring.io/spring-data/jpa/docs/current/reference/html/#jpa.query-methods

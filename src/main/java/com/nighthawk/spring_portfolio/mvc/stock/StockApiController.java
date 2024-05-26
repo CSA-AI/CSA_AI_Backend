@@ -113,18 +113,31 @@ public class StockApiController {
             return new ResponseEntity<>("Stock bought successfully", HttpStatus.OK);
         } else if (operation.equalsIgnoreCase("sell")) {
             // Retrieve the latest buy record
-            Stock previousBuy = repository.findFirstByNameAndOperationOrderByTimeDesc(stockName, "buy");
-            // Retrieve the latest sell record
-            Stock previousSell = repository.findFirstByNameAndOperationOrderByTimeDesc(stockName, "sell");
+            // Retrieve all previous buy records
+            List<Stock> previousBuys = repository.findAllByNameAndOperationOrderByTimeDesc(stockName, "buy");
+            // Retrieve all previous sell records
+            List<Stock> previousSells = repository.findAllByNameAndOperationOrderByTimeDesc(stockName, "sell");
+
             // Calculate net shares bought and sold
-            int netShares = (previousBuy != null ? previousBuy.getShares() : 0) - (previousSell != null ? previousSell.getShares() : 0);
+            int netShares = 0;
+
+            // Add shares from all previous buy transactions to netShares
+            for (Stock buy : previousBuys) {
+                netShares += buy.getShares();
+            }
+
+            // Subtract shares from all previous sell transactions from netShares
+            for (Stock sell : previousSells) {
+                netShares -= sell.getShares();
+            }
+
             // Check if the user owns enough shares to sell
             if (netShares >= shares) {
                 // Calculate the percentage change
                 Double sellPrice = cost;
-                Double buyPrice = previousBuy != null ? previousBuy.getCost() : 0;
-                percentChange = previousBuy != null ? previousBuy.calculatePercentChange(sellPrice) : 0;
-
+                Double buyPrice = !previousBuys.isEmpty() ? previousBuys.get(0).getCost() : 0;
+                percentChange = !previousSells.isEmpty() ? previousSells.get(0).calculatePercentChange(sellPrice) : 0;
+            
                 // Create a new stock instance for selling
                 Stock stock = new Stock(stockName, email, operation, cost, shares, totalCost, percentChange, time, classCode);
                 // Save the stock information or process it as needed
@@ -151,36 +164,38 @@ public class StockApiController {
         }
     }
 
-    // @GetMapping("/accountValueChange/{email}")
-    // public ResponseEntity<ObjectNode> getAccountValueChangeForDay(
-    //         @PathVariable String email,
-    //         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    @GetMapping("/accountValueChange/{classCode}/{email}")
+    public ResponseEntity<ObjectNode> getAccountValueChangeForDay(
+            @PathVariable(required = false) String classCode,
+            @PathVariable String email,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         
-    //     // Retrieve transactions for the specified email and date from the database
-    //     List<Stock> transactions = repository.findByEmailAndTimeBetween(email, date.atStartOfDay(), date.atTime(23, 59, 59));
+        // Adjust the logic based on whether classCode is provided or not
+        List<Stock> transactions = repository.findByClassCodeAndEmailAndTimeBetween(classCode, email, date.atStartOfDay(), date.atTime(23, 59, 59));
 
-    //     // Calculate the change in account value based on the transactions
-    //     double totalChange = 0.0;
-    //     for (Stock transaction : transactions) {
-    //         if (transaction.getOperation().equalsIgnoreCase("buy")) {
-    //             // Add the transaction's total cost for buying stocks
-    //             totalChange -= transaction.getTotalCost();
-    //         } else if (transaction.getOperation().equalsIgnoreCase("sell")) {
-    //             // Subtract the transaction's total cost for selling stocks
-    //             totalChange += transaction.getTotalCost();
-    //         }
-    //     }
 
-    //     // Create JSON response
-    //     ObjectMapper objectMapper = new ObjectMapper();
-    //     ObjectNode response = objectMapper.createObjectNode();
-    //     response.put("email", email);
-    //     response.put("date", date.toString());
-    //     response.put("totalChange", totalChange);
+        // Calculate the change in account value based on the transactions
+        double totalChange = 0.0;
+        for (Stock transaction : transactions) {
+            if (transaction.getOperation().equalsIgnoreCase("buy")) {
+                // Add the transaction's total cost for buying stocks
+                totalChange -= transaction.getTotalCost();
+            } else if (transaction.getOperation().equalsIgnoreCase("sell")) {
+                // Subtract the transaction's total cost for selling stocks
+                totalChange += transaction.getTotalCost();
+            }
+        }
+        
+        // Create JSON response
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode response = objectMapper.createObjectNode();
+        response.put("email", email);
+        response.put("date", date.toString());
+        response.put("totalChange", totalChange);
 
-    //     // Return the JSON response
-    //     return new ResponseEntity<>(response, HttpStatus.OK);
-    // }
+        // Return the JSON response
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
     /*
      * GET trades by email

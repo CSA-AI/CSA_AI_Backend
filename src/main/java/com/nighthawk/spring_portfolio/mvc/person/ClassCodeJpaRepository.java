@@ -14,6 +14,8 @@ public interface ClassCodeJpaRepository extends JpaRepository<ClassCode, Long>{
 
     ClassCode findByClassCodeAndEmail(String ClassCode, String email);
 
+    ClassCode findTopByClassCode(String classCode);
+
     @Query("SELECT c FROM ClassCode c JOIN c.persons p WHERE p.id = :personId")
     List<ClassCode> findByPersonId(@Param("personId") Long personId);
 }

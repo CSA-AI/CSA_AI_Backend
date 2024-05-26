@@ -62,7 +62,7 @@ public class ModelInit {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
             }
 
-            ClassCode existingClassCode = classCodeRepository.findByClassCode("CSA-AI");
+            ClassCode existingClassCode = classCodeRepository.findTopByClassCode("CSA-AI");
             if (existingClassCode == null) {
                 ClassCode[] codes = ClassCode.init();
                 for (ClassCode code : codes) {
