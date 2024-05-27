@@ -1,13 +1,13 @@
-package com.nighthawk.spring_portfolio.mvc.stockObj;
+package com.nighthawk.spring_portfolio.mvc.performance;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class PerformanceIterator implements Iterable<StockObject> {
-    private List<StockObject> stockList;
+public class PerformanceIterator implements Iterable<PerformanceObject> {
+    private List<PerformanceObject> stockList;
 
-    public StockObjectIterator(List<StockObject> stockList) {
+    public PerformanceObjectIterator(List<PerformanceObject> stockList) {
         this.stockList = stockList;
     }
 
@@ -15,15 +15,15 @@ public class PerformanceIterator implements Iterable<StockObject> {
         return this.stockList.size();
     }
 
-    public void setKeyType(StockObject.KeyType keyType) {
-        // Update keyType for all StockObjects in the iterator
-        for (StockObject stockObject : stockList) {
-            stockObject.setOrder(keyType);
+    public void setKeyType(PerformanceObject.KeyType keyType) {
+        // Update keyType for all PerformanceObjects in the iterator
+        for (PerformanceObject PerformanceObject : stockList) {
+            PerformanceObject.setOrder(keyType);
         }
     }
 
     @Override
-    public Iterator<StockObject> iterator() {
+    public Iterator<PerformanceObject> iterator() {
         return stockList.iterator();
     }
 
@@ -40,8 +40,8 @@ public class PerformanceIterator implements Iterable<StockObject> {
         int n1 = mid - left + 1;
         int n2 = right - mid;
 
-        List<StockObject> leftList = new ArrayList<>(this.stockList.subList(left, mid + 1));
-        List<StockObject> rightList = new ArrayList<>(this.stockList.subList(mid + 1, right + 1));
+        List<PerformanceObject> leftList = new ArrayList<>(this.stockList.subList(left, mid + 1));
+        List<PerformanceObject> rightList = new ArrayList<>(this.stockList.subList(mid + 1, right + 1));
 
         int i = 0, j = 0, k = left;
 

@@ -1,65 +1,48 @@
 package com.nighthawk.spring_portfolio.mvc.performance;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+//@AllArgsConstructor
 @NoArgsConstructor
-public abstract class PerformanceCollectable implements Comparable<StockCollectable> {
-    public final String masterType = "Performance";
-	private String username;
-    private int rank;
-    private Double value;
-    private Double growth;
+public abstract class PerformanceCollectable implements Comparable<PerformanceCollectable> {
+    public final String masterType = "PerformanceCollectable";
+    private int rankNumber;
+    private String username;
+    private Double accountValue;
+    private Double accountGrowth;
     private String rating;
 
+  
 
-    private Integer volume;
-
-
-    // Are we selling or buying the stock?
-    // @NotEmpty
-    // private String operation;
-
-    public interface KeyTypes {
-		String name();
-	}
-	protected abstract KeyTypes getKey();
 
     public String getMasterType() {
-		return masterType;
-	}
+        return masterType;
+    }
 
-	// getter
-	public String getType() {
-		return type;
-	}
-
-	// setter
-	public void setType(String type) {
-		this.type = type;
+    // getter
+    public String getType() {
+        return getClass().getSimpleName();
     }
 
     // this method is used to establish key order
-	public abstract String toString();
+    @Override
+    public abstract String toString();
 
-	// this method is used to compare toString of objects
-	public int compareTo(Performance obj) {
-		return this.toString().compareTo(obj.toString());
-	}
+    // this method is used to compare toString of objects
+    @Override
+    public int compareTo(PerformanceCollectable obj) {
+        return this.toString().compareTo(obj.toString());
+    }
 
-    // Essentially, we record who buys the stock (id), what stock they bought (name), cost of the share (cost), amount of the shares (shares), time of the transaction (time), and whether it was bought or sold (operation)
-    public Performance(String ticker, List<Double> predictions, Double open, Double high, Double low, Integer volume) {
-        this.ticker = ticker;
-        this.predictionsPercentGrowth = 100*((predictions.get(predictions.size()-1)-predictions.get(0))/predictions.get(0));
-        this.predictions = predictions;
-        this.open = open;
-        this.high = high;
-        this.low = low;
-        this.volume = volume;
+    // Constructor
+    public PerformanceCollectable(int rankNumber, String username, Double accountValue, Double accountGrowth, String rating) {
+        this.rankNumber = rankNumber;
+        this.username = username;
+        this.accountValue = accountValue;
+        this.accountGrowth = accountGrowth;
+        this.rating = rating;
     }
 }
-
