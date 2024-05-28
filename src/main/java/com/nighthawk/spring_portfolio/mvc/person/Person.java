@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -28,16 +26,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
 
 
 /*
@@ -51,7 +50,6 @@ The last annotation connect to database
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@EqualsAndHashCode(exclude = {"classCodes", "roles", "stats"})
 @Convert(attributeName ="person", converter = JsonType.class)
 public class Person {
 
@@ -95,36 +93,32 @@ public class Person {
     @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
     
-    @ManyToMany(fetch = EAGER)
-    private Set<ClassCode> classCodes = new HashSet<>();
+    @OneToMany(fetch = EAGER)
+    private Collection<ClassCode> classCodes = new ArrayList<>();
 
     @Column
 	private String ImageEncoder;
 
-    // public void addClassCode(ClassCode ClassCode) {
-    //     this.classCodes.add(ClassCode);
-    //     ClassCode.setPerson(this);
-    // }
+    @Column 
+    private double rating;
+
+    @OneToOne
+    private PerformanceObject performanceObject;
+
+
+    public void addClassCode(ClassCode ClassCode) {
+        this.classCodes.add(ClassCode);
+        ClassCode.setPerson(this);
+    }
     
     // Constructor used when building object from an API
-    public Person(String email, String password, String name, Date dob) {
+    public Person(String email, String password, String name, Date dob, double rating) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.dob = dob;
         this.ImageEncoder = null;
-    }
-
-    public void addClassCode(ClassCode classCode) {
-        if (classCode != null) {
-            Set<Person> persons = classCode.getPersons();
-            if (persons == null) {
-                persons = new HashSet<>();
-                classCode.setPersons(persons); // Assuming there's a setter
-            }
-            persons.add(this);
-            classCodes.add(classCode);
-        }
+        this.rating = rating; 
     }
 
     // A custom getter to return age from dob attribute
@@ -163,21 +157,9 @@ public class Person {
             // no actions as dob default is good enough
         }
 
-        Person p3 = new Person();
-        p3.setName("Admin");
-        p3.setEmail("global@csaai.com");
-        p3.setPassword("csaAIadmin@8017");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
-            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("05-18-1970");
-            p3.setDob(d);
-        } catch (Exception e) {
-            // no actions as dob default is good enough
-        }
-
 
         // Array definition and data initialization
-        Person persons[] = {p1, p2, p3};
+        Person persons[] = {p1, p2};
         return(persons);
     }
 
