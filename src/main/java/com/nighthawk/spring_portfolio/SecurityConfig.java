@@ -116,7 +116,7 @@ public class SecurityConfig {
 		configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-csrf-token"));
 		configuration.setExposedHeaders(Arrays.asList("authorization"));
 		configuration.setAllowCredentials(true);
-		configuration.setAllowedOrigins(Arrays.asList("https://nighthawkcoders.github.io", "http://localhost:4000", "http://127.0.0.1:4000", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-ai-frontend.vercel.app", "http://localhost:3000", "https://csa-ai.stu.nighthawkcodingsociety.com"));
+		configuration.setAllowedOrigins(Arrays.asList("https://nighthawkcoders.github.io", "http://localhost:4000", "http://127.0.0.1:4000", "https://john-scc.github.io", "http://127.0.0.1:4100", "https://csa-ai-frontend.vercel.app", "http://localhost:3000"));
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
