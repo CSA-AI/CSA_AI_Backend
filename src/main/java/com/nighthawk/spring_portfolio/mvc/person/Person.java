@@ -26,6 +26,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -35,6 +36,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
 
 
 /*
@@ -100,8 +102,9 @@ public class Person {
     @Column 
     private double rating;
 
-    @Column
-    private int price;
+    @OneToOne
+    private PerformanceObject performanceObject;
+
 
     public void addClassCode(ClassCode ClassCode) {
         this.classCodes.add(ClassCode);
@@ -109,14 +112,13 @@ public class Person {
     }
     
     // Constructor used when building object from an API
-    public Person(String email, String password, String name, Date dob, double rating, int price) {
+    public Person(String email, String password, String name, Date dob, double rating) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.dob = dob;
         this.ImageEncoder = null;
         this.rating = rating; 
-        this.price = price;
     }
 
     // A custom getter to return age from dob attribute

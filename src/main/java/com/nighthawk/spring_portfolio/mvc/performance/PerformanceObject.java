@@ -1,5 +1,9 @@
 package com.nighthawk.spring_portfolio.mvc.performance;
 
+import org.hibernate.annotations.Type;
+
+import com.vladmihalcea.hibernate.type.json.JsonType;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -12,8 +16,7 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@EqualsAndHashCode(callSuper = false)
+@Convert(attributeName = "PerformanceObject", converter = JsonType.class)
 public class PerformanceObject extends PerformanceCollectable implements Iterable<PerformanceObject> {
     public enum KeyType implements KeyTypes {rankNumber, accountValue, accountGrowth}
     public static KeyTypes key = KeyType.accountGrowth;
@@ -42,8 +45,9 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     @Column()
     private String rating;
 
-    @Column(columnDefinition = "TEXT")
-    private String stats; // Use simple JSON string to avoid complex dependencies
+    @Type(type = "json")
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Map<String, Object>> stats = new HashMap<>();
 
     public PerformanceObject(String username, int rankNumber, Double accountValue, Double accountGrowth, String rating) {
         this.username = username;
@@ -51,7 +55,6 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
         this.accountValue = accountValue;
         this.accountGrowth = accountGrowth;
         this.rating = rating;
-        this.stats = "{}"; // Initialize with empty JSON object
     }
 
     @Override
