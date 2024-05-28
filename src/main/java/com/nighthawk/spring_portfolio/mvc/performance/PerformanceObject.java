@@ -1,33 +1,24 @@
 package com.nighthawk.spring_portfolio.mvc.performance;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Comparator;
-import java.util.Iterator;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
-//@Data
+import java.util.*;
+
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Convert(attributeName ="PerformanceObject", converter = JsonType.class)
+@EqualsAndHashCode(callSuper = false)
 public class PerformanceObject extends PerformanceCollectable implements Iterable<PerformanceObject> {
-    public enum KeyType implements KeyTypes { rankNumber, accountValue, accountGrowth }
-   public static KeyTypes key = KeyType.accountGrowth;
+    public enum KeyType implements KeyTypes {rankNumber, accountValue, accountGrowth}
+    public static KeyTypes key = KeyType.accountGrowth;
+
+    public void setOrder(KeyTypes key) {PerformanceObject.key = key;}
 
     private String sortingKey = "accountGrowth";
 
@@ -36,7 +27,7 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     private Long id;
 
     @NotEmpty
-    @Column(unique=true)
+    @Column(unique = true)
     private String username;
 
     @Column()
@@ -51,12 +42,16 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     @Column()
     private String rating;
 
+    @Column(columnDefinition = "TEXT")
+    private String stats; // Use simple JSON string to avoid complex dependencies
+
     public PerformanceObject(String username, int rankNumber, Double accountValue, Double accountGrowth, String rating) {
         this.username = username;
         this.rankNumber = rankNumber;
         this.accountValue = accountValue;
         this.accountGrowth = accountGrowth;
         this.rating = rating;
+        this.stats = "{}"; // Initialize with empty JSON object
     }
 
     @Override
@@ -86,36 +81,33 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
 
     @Override
     public Iterator<PerformanceObject> iterator() {
-        List<PerformanceObject> sortedList = new ArrayList<>(Arrays.asList(this));
+        List<PerformanceObject> sortedList = new ArrayList<>(Collections.singletonList(this));
         sortedList.sort(Comparator.naturalOrder());
         return sortedList.iterator();
     }
 
     // Initialize static test data
-    public static PerformanceObjectIterator init() {
-        PerformanceObject p1 = new PerformanceObject("Alice", 1, 10000.0, 5.0, "HIGHER");
-        PerformanceObject p2 = new PerformanceObject("Bob", 2, 8000.0, 3.0, "LOWER");
-        PerformanceObject[] performances = { p1, p2 };
+    public static PerformanceIterator init() {
+        PerformanceObject p1 = new PerformanceObject("Alice", 1, 10000.0, 5.0, "A");
+        PerformanceObject p2 = new PerformanceObject("Bob", 2, 8000.0, 3.0, "B");
+        PerformanceObject[] performances = {p1, p2};
         ArrayList<PerformanceObject> performanceList = new ArrayList<>(Arrays.asList(performances));
-        return new PerformanceObjectIterator(performanceList);
+        return new PerformanceIterator(performanceList);
     }
 
     public static void main(String[] args) {
-        PerformanceObjectIterator performances = init();
+        PerformanceIterator performances = init();
 
         for (PerformanceObject performance : performances) {
             System.out.println(performance);
         }
 
-        performances.setOrder(KeyType.rankNumber);
+        performances.setKeyType(KeyType.rankNumber);
         performances.mergeSort(0, performances.size() - 1);
         System.out.println();
 
         for (PerformanceObject performance : performances) {
             System.out.println(performance);
         }
-    }
-
-    public enum key {
     }
 }

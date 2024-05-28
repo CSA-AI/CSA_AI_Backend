@@ -5,26 +5,26 @@ import java.util.Iterator;
 import java.util.List;
 
 public class PerformanceIterator implements Iterable<PerformanceObject> {
-    private List<PerformanceObject> stockList;
+    private List<PerformanceObject> performanceList;
 
-    public PerformanceObjectIterator(List<PerformanceObject> stockList) {
-        this.stockList = stockList;
+    public PerformanceIterator(List<PerformanceObject> performanceList) {
+        this.performanceList = performanceList;
     }
 
     public Integer size() {
-        return this.stockList.size();
+        return this.performanceList.size();
     }
 
     public void setKeyType(PerformanceObject.KeyType keyType) {
         // Update keyType for all PerformanceObjects in the iterator
-        for (PerformanceObject PerformanceObject : stockList) {
-            PerformanceObject.setOrder(keyType);
+        for (PerformanceObject performanceObject : performanceList) {
+            performanceObject.setOrder(keyType);
         }
     }
 
     @Override
     public Iterator<PerformanceObject> iterator() {
-        return stockList.iterator();
+        return performanceList.iterator();
     }
 
     public void mergeSort(int left, int right) {
@@ -40,26 +40,25 @@ public class PerformanceIterator implements Iterable<PerformanceObject> {
         int n1 = mid - left + 1;
         int n2 = right - mid;
 
-        List<PerformanceObject> leftList = new ArrayList<>(this.stockList.subList(left, mid + 1));
-        List<PerformanceObject> rightList = new ArrayList<>(this.stockList.subList(mid + 1, right + 1));
+        List<PerformanceObject> leftList = new ArrayList<>(this.performanceList.subList(left, mid + 1));
+        List<PerformanceObject> rightList = new ArrayList<>(this.performanceList.subList(mid + 1, right + 1));
 
         int i = 0, j = 0, k = left;
 
         while (i < n1 && j < n2) {
             if (leftList.get(i).compareTo(rightList.get(j)) >= 0) {
-                this.stockList.set(k++, leftList.get(i++));
+                this.performanceList.set(k++, leftList.get(i++));
             } else {
-                this.stockList.set(k++, rightList.get(j++));
+                this.performanceList.set(k++, rightList.get(j++));
             }
         }
 
         while (i < n1) {
-            this.stockList.set(k++, leftList.get(i++));
+            this.performanceList.set(k++, leftList.get(i++));
         }
 
         while (j < n2) {
-            this.stockList.set(k++, rightList.get(j++));
+            this.performanceList.set(k++, rightList.get(j++));
         }
     }
 }
-
