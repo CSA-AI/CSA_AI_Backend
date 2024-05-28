@@ -5,7 +5,6 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +46,9 @@ public class PersonApiController {
 
     @GetMapping("/")
     public ResponseEntity<List<Person>> getPeople() {
-        return new ResponseEntity<>(repository.findAllByOrderByNameAsc(), HttpStatus.OK);
+        List<Person> people = repository.findAll();
+        people.sort((p1, p2) -> p1.getPerformanceObject().getRating().compareTo(p2.getPerformanceObject().getRating()));
+        return new ResponseEntity<>(people, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
@@ -81,18 +82,29 @@ public class PersonApiController {
     }
 
     @PostMapping("/createCode")
-    public ResponseEntity<Object> createCode(@RequestParam("email") String email) {
-        Person person = repository.findByEmail(email);
+    public ResponseEntity<Object> createCode(@RequestBody CreateCodeRequest request) {
+        Person person = repository.findByEmail(request.getEmail());
         if (person == null) {
             return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
         }
+
+        boolean isTeacher = person.getRoles().stream()
+                .anyMatch(role -> role.getName().equals("ROLE_TEACHER"));
+
+        if (!isTeacher) {
+            return new ResponseEntity<>(Map.of("error", "Person is not a teacher"), HttpStatus.FORBIDDEN);
+        }
+
         String classCode = generateUniqueClassCode();
-        ClassCode newCode = new ClassCode(classCode);
+        ClassCode newCode = new ClassCode(classCode, request.getClassName(), request.getEmail(), 100000.00, 100000.00);
+        
+        newCode.setEmail(request.getEmail());
+        
         person.addClassCode(newCode);
-        newCode.setPerson(person);
         classCodeRepository.save(newCode);
         personDetailsService.save(person);
-        return new ResponseEntity<>(Map.of("message", email + " New code generated: " + classCode), HttpStatus.OK);
+
+        return new ResponseEntity<>(Map.of("message", request.getEmail() + " New code generated: " + classCode), HttpStatus.OK);
     }
 
     private String generateUniqueClassCode() {
@@ -109,26 +121,56 @@ public class PersonApiController {
         } while (true);
     }
 
+    @PostMapping("/joinGame")
+    public ResponseEntity<Object> joinClass(@RequestBody JoinClassRequest request) {
+        String email = request.getEmail();
+        String classCode = request.getClassCode();
+
+        Person person = repository.findByEmail(email);
+        if (person == null) {
+            return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        }
+
+        ClassCode classCodeEntity = classCodeRepository.findByClassCode(classCode);
+        if (classCodeEntity == null) {
+            return new ResponseEntity<>(Map.of("error", "Class code not found"), HttpStatus.NOT_FOUND);
+        }
+
+        String className = classCodeEntity.getClassName();
+        ClassCode newCode = new ClassCode(request.getClassCode(), className, request.getEmail(), 100000.00, 100000.00);
+
+        person.addClassCode(classCodeEntity);
+        classCodeRepository.save(newCode);
+        repository.save(person);
+
+        return new ResponseEntity<>(Map.of("message", "Successfully joined the class"), HttpStatus.OK);
+    }
+
+    @GetMapping("/classCodes/{email}")
+    public ResponseEntity<List<ClassCode>> getClassCodesByEmail(@PathVariable String email) {
+        List<ClassCode> codes = classCodeRepository.findByEmail(email);
+        if (!codes.isEmpty()) {
+            return new ResponseEntity<>(codes, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/class/{classCode}/{email}")
+    public ResponseEntity<ClassCode> getClassCodeByEmailAndClassCode(@PathVariable String classCode, @PathVariable String email) {
+        ClassCode classData = classCodeRepository.findByClassCodeAndEmail(classCode, email);
+        if (classData != null) {
+            return new ResponseEntity<>(classData, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
     @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> personSearch(@RequestBody final Map<String, String> map) {
         String term = map.get("term");
         List<Person> list = repository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(term, term);
         return new ResponseEntity<>(list, HttpStatus.OK);
-    }
-
-    @GetMapping("/stockStats")
-    public ResponseEntity<Map<String, Integer>> getStockStats() {
-        HashMap<String, Integer> data = new HashMap<>();
-        // Here you will implement your logic to calculate stock stats based on user data
-        // For now, I'll just return an empty map
-        return new ResponseEntity<>(data, HttpStatus.OK);
-    }
-
-    @PostMapping(value = "/updateStocks", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Person> personStats(@RequestBody final Map<String, Object> stat_map) {
-        // Here you will implement your logic to update stock stats for a person
-        // For now, I'll just return a 200 OK with an empty body
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping(value = "/stats/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -149,10 +191,11 @@ public class PersonApiController {
             person.setPassword(personRequest.getPassword());
             person.setName(personRequest.getName());
             person.setDob(personRequest.getDob());
+            person.setPerformanceObject(personRequest.getPerformanceObject());
             repository.save(person);
-            return new ResponseEntity<>(Map.of("message", email + " is updated successfully"), HttpStatus.OK);
+            return new ResponseEntity<>(person, HttpStatus.OK);
         }
-        return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping("/createAdmin")
@@ -163,6 +206,19 @@ public class PersonApiController {
             personDetailsService.save(person);
             personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_ADMIN");
             return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully"), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/createTeacher")
+    public ResponseEntity<Object> postTeacherPerson(@RequestBody Person personRequest) {
+        try {
+            Date dob = personRequest.getDob();
+            Person person = new Person(personRequest.getEmail(), personRequest.getPassword(), personRequest.getName(), dob, personRequest.getRating());
+            personDetailsService.save(person);
+            personDetailsService.addRoleToPerson(personRequest.getEmail(), "ROLE_TEACHER");
+            return new ResponseEntity<>(Map.of("message", personRequest.getEmail() + " is created successfully as a teacher"), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(Map.of("error", "Error processing the request."), HttpStatus.BAD_REQUEST);
         }
