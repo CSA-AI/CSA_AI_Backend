@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 /*
 Extends the JpaRepository interface from Spring Data JPA.
@@ -15,6 +16,16 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
     Stock findByName(String name);
 
     List<Stock> findAllByOrderByNameAsc();
+
+    // List<Stock> findByEmailAndTimeBetween(String email, LocalDateTime startTime, LocalDateTime endTime);
+
+    List<Stock> findByEmailOrderByTimeDesc(String email);
+
+    Stock findFirstByNameAndOperationOrderByTimeDesc(String name, String operation);
+
+    List<Stock> findAllByNameAndOperationOrderByTimeDesc(String name, String operation);
+
+    List<Stock> findByClassCodeAndEmailAndTimeBetween(String classCode, String email, LocalDateTime startTime, LocalDateTime endTime);
 
     /* Custom JPA query articles, there are articles that show custom SQL as well
        https://springframework.guru/spring-data-jpa-query/
