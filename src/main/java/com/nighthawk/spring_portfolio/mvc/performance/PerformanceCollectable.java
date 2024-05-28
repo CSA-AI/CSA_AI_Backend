@@ -15,6 +15,12 @@ public abstract class PerformanceCollectable implements Comparable<PerformanceCo
     private Double accountGrowth;
     private String rating;
 
+    public enum RatingTypes {
+        HIGHER,
+        LOWER;
+    }
+
+    protected abstract RatingTypes getKey();
   
 
 
