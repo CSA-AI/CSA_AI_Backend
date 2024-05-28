@@ -2,15 +2,19 @@
 FROM openjdk:18-alpine3.14
 WORKDIR /app
 
+# Install required packages
 RUN apk --no-cache update && \
     apk --no-cache upgrade && \
-    apk --no-cache add nodejs npm
+    apk --no-cache add nodejs npm git maven
 
-# COPY entrypoint.sh /entrypoint.sh
-# RUN chmod +x /entrypoint.sh
-# ENTRYPOINT ["/entrypoint.sh"]
-RUN apk --no-cache add git
+# Copy application source code to the container
 COPY . /app
-RUN ./mvnw package
-CMD ["java", "-jar", "target/spring-0.0.1-SNAPSHOT.jar"]
+
+# Build the application
+RUN mvn clean install
+
+# Set the command to change directory to target and run the application with the production profile
+CMD ["sh", "-c", "cd target && java -jar spring-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod"]
+
+# Expose the application port
 EXPOSE 8017
