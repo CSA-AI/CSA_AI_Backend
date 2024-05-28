@@ -1,5 +1,5 @@
 package com.nighthawk.spring_portfolio.mvc.stockObj;
-
+// clean up code!
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
