@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -32,25 +34,19 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
 
-
-/*
-Person is a POJO, Plain Old Java Object.
-First set of annotations add functionality to POJO
---- @Setter @Getter @ToString @NoArgsConstructor @RequiredArgsConstructor
-The last annotation connect to database
---- @Entity
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Convert(attributeName ="person", converter = JsonType.class)
+@EqualsAndHashCode(exclude = {"classCodes", "roles", "stats"})
+@Convert(attributeName = "person", converter = JsonType.class)
 public class Person {
 
     // automatic unique identifier for Person record
@@ -68,7 +64,6 @@ public class Person {
     @NotEmpty
     private String password;
 
-    // @NonNull, etc placed in params of constructor: "@NonNull @Size(min = 2, max = 30, message = "Name (2 to 30 chars)") String name"
     @NonNull
     @Size(min = 2, max = 30, message = "Name (2 to 30 chars)")
     private String name;
@@ -77,24 +72,15 @@ public class Person {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dob;
 
-    // To be implemented
     @ManyToMany(fetch = EAGER)
     private Collection<PersonRole> roles = new ArrayList<>();
 
-    /* HashMap is used to store JSON for daily "stats"
-    "stats": {
-        "2022-11-13": {
-            "calories": 2200,
-            "steps": 8000
-        }
-    }
-    */
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
     
-    @OneToMany(fetch = EAGER)
-    private Collection<ClassCode> classCodes = new ArrayList<>();
+    @ManyToMany(fetch = EAGER)
+    private Set<ClassCode> classCodes = new HashSet<>();
 
     @Column
 	private String ImageEncoder;
@@ -105,10 +91,9 @@ public class Person {
     @OneToOne
     private PerformanceObject performanceObject;
 
-
-    public void addClassCode(ClassCode ClassCode) {
-        this.classCodes.add(ClassCode);
-        ClassCode.setPerson(this);
+    public void addClassCode(ClassCode classCode) {
+        this.classCodes.add(classCode);
+        classCode.setPerson(this);
     }
     
     // Constructor used when building object from an API
@@ -137,8 +122,7 @@ public class Person {
         p1.setName("Thomas Edison");
         p1.setEmail("toby@gmail.com");
         p1.setPassword("123Toby!");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
+        try {
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("01-01-1840");
             p1.setDob(d);
         } catch (Exception e) {
@@ -149,28 +133,33 @@ public class Person {
         p2.setName("Hop");
         p2.setEmail("hop@gmail.com");
         p2.setPassword("123hop");
-        // adding Note to notes collection
-        try {  // All data that converts formats could fail
+        try {
             Date d = new SimpleDateFormat("MM-dd-yyyy").parse("04-02-2003");
             p2.setDob(d);
         } catch (Exception e) {
             // no actions as dob default is good enough
         }
 
+        Person p3 = new Person();
+        p3.setName("Admin");
+        p3.setEmail("global@csaai.com");
+        p3.setPassword("csaAIadmin@8017");
+        try {
+            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("05-18-1970");
+            p3.setDob(d);
+        } catch (Exception e) {
+            // no actions as dob default is good enough
+        }
 
-        // Array definition and data initialization
-        Person persons[] = {p1, p2};
-        return(persons);
+        Person[] persons = {p1, p2, p3};
+        return persons;
     }
 
     public static void main(String[] args) {
-        // obtain Person from initializer
-        Person persons[] = init();
+        Person[] persons = init();
 
-        // iterate using "enhanced for loop"
-        for( Person person : persons) {
-            System.out.println(person);  // print object
+        for (Person person : persons) {
+            System.out.println(person);
         }
     }
-
 }

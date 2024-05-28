@@ -1,7 +1,7 @@
 package com.nighthawk.spring_portfolio.mvc.performance;
 
-import org.hibernate.annotations.Type;
-
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 
 import jakarta.persistence.*;
@@ -16,7 +16,9 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Convert(attributeName = "PerformanceObject", converter = JsonType.class)
+@Entity
+@EqualsAndHashCode(callSuper = false)
+@Convert(converter = JsonType.class)
 public class PerformanceObject extends PerformanceCollectable implements Iterable<PerformanceObject> {
     public enum KeyType implements KeyTypes {rankNumber, accountValue, accountGrowth}
     public static KeyTypes key = KeyType.accountGrowth;
@@ -33,19 +35,19 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     @Column(unique = true)
     private String username;
 
-    @Column()
+    @Column
     private int rankNumber;
 
-    @Column()
+    @Column
     private Double accountValue;
 
-    @Column()
+    @Column
     private Double accountGrowth;
 
-    @Column()
+    @Column
     private String rating;
 
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private Map<String, Map<String, Object>> stats = new HashMap<>();
 
