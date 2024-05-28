@@ -110,19 +110,20 @@ public class FrameApiController {
         return mnistDataList;
     }
 
+    // method to create variations of an image
     private BufferedImage[] createAugmentedImages(BufferedImage originalImage) throws IOException {
-        BufferedImage[] augmentedImages = new BufferedImage[9]; // Array size remains 9 for 9 variations
-        augmentedImages[0] = originalImage;
-        augmentedImages[1] = changeBrightness(originalImage, 0.8f);
-        augmentedImages[2] = changeBrightness(originalImage, 1.2f);
-        augmentedImages[3] = addNoise(originalImage, 0.1);
-        augmentedImages[4] = addNoise(originalImage, 0.2);
-        augmentedImages[5] = adjustHue(originalImage);
-        augmentedImages[6] = rotateImage(originalImage, 30); // Rotate image by 30 degrees
-        augmentedImages[7] = flipImage(originalImage, true); // Flip image horizontally
-        augmentedImages[8] = flipImage(originalImage, false); // Flip image vertically
+        BufferedImage[] augmentedImages = new BufferedImage[9]; // array size remains 9 for 9 variations
+        augmentedImages[0] = originalImage; // first image remains unchanged
+        augmentedImages[1] = changeBrightness(originalImage, 0.8f); // decrease brightness by 20%
+        augmentedImages[2] = changeBrightness(originalImage, 1.2f); // increase brightness by 20%
+        augmentedImages[3] = addNoise(originalImage, 0.1); // add low level of noise
+        augmentedImages[4] = addNoise(originalImage, 0.2); // add higher level of noise
+        augmentedImages[5] = adjustHue(originalImage); // randomly adjust hue
+        augmentedImages[6] = rotateImage(originalImage, 30); // rotate image by 30 degrees
+        augmentedImages[7] = flipImage(originalImage, true); // flip image horizontally
+        augmentedImages[8] = flipImage(originalImage, false); // flip image vertically
     
-        // Save each augmented image to a file using i+1
+        // save each augmented image to a file using i+1 as filename
         for (int i = 0; i < augmentedImages.length; i++) {
             saveImage(augmentedImages[i], "augmented_image_" + (i + 1) + ".png");
         }
@@ -130,12 +131,14 @@ public class FrameApiController {
         return augmentedImages;
     }    
 
+    // method to change brightness of an image
     private BufferedImage changeBrightness(BufferedImage image, float factor) {
         BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
 
+        // adjust brightness for each pixel
         for (int y = 0; y < newImage.getHeight(); y++) {
             for (int x = 0; x < newImage.getWidth(); x++) {
                 int rgba = newImage.getRGB(x, y);
@@ -149,12 +152,14 @@ public class FrameApiController {
         return newImage;
     }
 
+    // method to add noise to an image
     private BufferedImage addNoise(BufferedImage image, double noiseLevel) {
         BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
 
+        // add noise to each pixel
         for (int y = 0; y < newImage.getHeight(); y++) {
             for (int x = 0; x < newImage.getWidth(); x++) {
                 int rgba = newImage.getRGB(x, y);
@@ -168,12 +173,14 @@ public class FrameApiController {
         return newImage;
     }
 
+    // method to adjust hue of an image
     private BufferedImage adjustHue(BufferedImage image) {
         BufferedImage newImage = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
         Graphics2D g = newImage.createGraphics();
         g.drawImage(image, 0, 0, null);
         g.dispose();
 
+        // adjust hue for each pixel
         for (int y = 0; y < newImage.getHeight(); y++) {
             for (int x = 0; x < newImage.getWidth(); x++) {
                 int rgba = newImage.getRGB(x, y);
@@ -181,86 +188,86 @@ public class FrameApiController {
                 int red = Math.min(255, (int)(((rgba >> 16) & 0xff) * (0.8 + Math.random() * 0.4)));
                 int green = Math.min(255, (int)(((rgba >> 8) & 0xff) * (0.8 + Math.random() * 0.4)));
                 int blue = Math.min(255, (int)((rgba & 0xff) * (0.8 + Math.random() * 0.4)));
-                newImage.setRGB(x, y, (alpha << 24) | (
-                    red << 16) | (green << 8) | blue);
-                }
+                newImage.setRGB(x, y, (alpha << 24) | (red << 16) | (green << 8) | blue);
             }
-            return newImage;
+        }
+        return newImage;
+    }
+
+    // method to rotate an image
+    private BufferedImage rotateImage(BufferedImage image, double angle) {
+        // create a transformation matrix for rotating the image
+        AffineTransform tx = new AffineTransform();
+        tx.rotate(Math.toRadians(angle), image.getWidth() / 2.0, image.getHeight() / 2.0);
+    
+        // apply the transformation to the image
+        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
+        return op.filter(image, null);
+    }
+    
+    // method to flip an image horizontally or vertically
+    private BufferedImage flipImage(BufferedImage image, boolean horizontal) {
+        // create a transformation matrix for flipping the image
+        AffineTransform tx = new AffineTransform();
+        if (horizontal) {
+            tx.scale(-1, 1); // flip horizontally
+            tx.translate(-image.getWidth(), 0);
+        } else {
+            tx.scale(1, -1); // flip vertically
+            tx.translate(0, -image.getHeight());
         }
     
-        private BufferedImage rotateImage(BufferedImage image, double angle) {
-            // Create a transformation matrix for rotating the image
-            AffineTransform tx = new AffineTransform();
-            tx.rotate(Math.toRadians(angle), image.getWidth() / 2.0, image.getHeight() / 2.0);
-    
-            // Apply the transformation to the image
-            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_BILINEAR);
-            return op.filter(image, null);
+        // apply the transformation to the image
+        AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
+        return op.filter(image, null);
+    }
+    private List<List<Integer>> convertToMNIST(BufferedImage image) {
+        BufferedImage resizedImage = new BufferedImage(28, 28, BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(image, 0, 0, 28, 28, null);
+        g.dispose();
+
+        List<List<Integer>> mnistData = new ArrayList<>();
+        for (int y = 0; y < 28; y++) {
+            List<Integer> row = new ArrayList<>();
+            for (int x = 0; x < 28; x++) {
+                int pixel = resizedImage.getRGB(x, y) & 0xFF;
+                row.add(pixel);
+            }
+            mnistData.add(row);
         }
-    
-        private BufferedImage flipImage(BufferedImage image, boolean horizontal) {
-            // Create a transformation matrix for flipping the image
-            AffineTransform tx = new AffineTransform();
-            if (horizontal) {
-                tx.scale(-1, 1); // Flip horizontally
-                tx.translate(-image.getWidth(), 0);
-            } else {
-                tx.scale(1, -1); // Flip vertically
-                tx.translate(0, -image.getHeight());
-            }
-    
-            // Apply the transformation to the image
-            AffineTransformOp op = new AffineTransformOp(tx, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
-            return op.filter(image, null);
+        return mnistData;
+    }
+
+    private void postMnistData(List<List<Integer>> mnistData) {
+        String url = "http://localhost:8017/smnist";
+        restTemplate.postForObject(url, mnistData, String.class);
+    }
+
+    private void saveImage(BufferedImage image, String filename) throws IOException {
+        File output = new File(filename);
+        ImageIO.write(image, "png", output);
+    }
+
+    public static class ImageData {
+        private String image;
+        private int label;
+
+        public String getImage() {
+            return image;
         }
-    
-        private List<List<Integer>> convertToMNIST(BufferedImage image) {
-            BufferedImage resizedImage = new BufferedImage(28, 28, BufferedImage.TYPE_BYTE_GRAY);
-            Graphics2D g = resizedImage.createGraphics();
-            g.drawImage(image, 0, 0, 28, 28, null);
-            g.dispose();
-    
-            List<List<Integer>> mnistData = new ArrayList<>();
-            for (int y = 0; y < 28; y++) {
-                List<Integer> row = new ArrayList<>();
-                for (int x = 0; x < 28; x++) {
-                    int pixel = resizedImage.getRGB(x, y) & 0xFF;
-                    row.add(pixel);
-                }
-                mnistData.add(row);
-            }
-            return mnistData;
+
+        public void setImage(String image) {
+            this.image = image;
         }
-    
-        private void postMnistData(List<List<Integer>> mnistData) {
-            String url = "http://localhost:8017/smnist";
-            restTemplate.postForObject(url, mnistData, String.class);
+
+        public int getLabel() {
+            return label;
         }
-    
-        private void saveImage(BufferedImage image, String filename) throws IOException {
-            File output = new File(filename);
-            ImageIO.write(image, "png", output);
-        }
-    
-        public static class ImageData {
-            private String image;
-            private int label;
-    
-            public String getImage() {
-                return image;
-            }
-    
-            public void setImage(String image) {
-                this.image = image;
-            }
-    
-            public int getLabel() {
-                return label;
-            }
-    
-            public void setLabel(int label) {
-                this.label = label;
-            }
+
+        public void setLabel(int label) {
+            this.label = label;
         }
     }
+}
     
