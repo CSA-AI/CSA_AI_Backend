@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 // import org.springframework.security.crypto.password.PasswordEncoder;
 // import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 // import java.util.ArrayList;
@@ -31,6 +33,10 @@ public class StockDetailService {  // "implements" ties ModelRepo to Spring Secu
         return stockJpaRepository.findAllByOrderByNameAsc();
     }
 
+    public  List<Stock>list(String classCode, String email, String name, String operation, Double cost, LocalDateTime time) {
+        return stockJpaRepository.findByClassCodeAndEmailAndNameAndOperationAndCostAndTime(classCode, email, name, operation, cost, time);
+    }
+
     // custom query to find anything containing term in name or email ignoring case
     public  List<Stock>listLikeNative(String term) {
         String like_term = String.format("%%%s%%",term);  // Like required % rappers
@@ -49,5 +55,9 @@ public class StockDetailService {  // "implements" ties ModelRepo to Spring Secu
 
     public void delete(long id) {
         stockJpaRepository.deleteById(id);
+    }
+
+    public void save(Stock stock) {
+        stockJpaRepository.save(stock);
     }
 }

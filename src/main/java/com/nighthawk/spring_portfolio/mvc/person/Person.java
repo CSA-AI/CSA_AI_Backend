@@ -175,9 +175,33 @@ public class Person {
             // no actions as dob default is good enough
         }
 
+        Person p4 = new Person();
+        p4.setName("test");
+        p4.setEmail("test@gmail.com");
+        p4.setPassword("test");
+        // adding Note to notes collection
+        try {  // All data that converts formats could fail
+            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("08-15-2000");
+            p4.setDob(d);
+        } catch (Exception e) {
+            // no actions as dob default is good enough
+        }
+
+        Person p5 = new Person();
+        p5.setName("teacher");
+        p5.setEmail("teacher@gmail.com");
+        p5.setPassword("teach");
+        // adding Note to notes collection
+        try {  // All data that converts formats could fail
+            Date d = new SimpleDateFormat("MM-dd-yyyy").parse("03-13-1992");
+            p5.setDob(d);
+        } catch (Exception e) {
+            // no actions as dob default is good enough
+        }
+
 
         // Array definition and data initialization
-        Person persons[] = {p1, p2, p3};
+        Person persons[] = {p1, p2, p3, p4, p5};
         return(persons);
     }
 

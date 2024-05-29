@@ -17,6 +17,10 @@ import com.nighthawk.spring_portfolio.mvc.stockObj.StockObjectJpaRepository;
 import com.nighthawk.spring_portfolio.mvc.person.ClassCode;
 import com.nighthawk.spring_portfolio.mvc.person.ClassCodeService;
 import com.nighthawk.spring_portfolio.mvc.person.ClassCodeJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.stock.Stock;
+import com.nighthawk.spring_portfolio.mvc.stock.StockJpaRepository;
+import com.nighthawk.spring_portfolio.mvc.stock.StockDetailService;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -29,6 +33,7 @@ public class ModelInit {
     @Autowired ClassCodeJpaRepository classCodeRepository;
     @Autowired StockObjectDetailsService stockObjectService;
     @Autowired PersonRoleJpaRepository roleRepo;
+    @Autowired StockDetailService stockRepository;
 
     @Bean
     CommandLineRunner run() {  // The run() method will be executed after the application starts
@@ -75,6 +80,14 @@ public class ModelInit {
                 List<StockObject> stockFound = stockObjectService.list(stock.getTicker());
                 if (stockFound.size() == 0) {
                     stockObjectService.save(stock);
+                }
+            }
+
+            Stock[] stocks = Stock.init();
+            for (Stock stock : stocks) { 
+                List<Stock> stockFound = stockRepository.list(stock.getClassCode(), stock.getEmail(), stock.getName(), stock.getOperation(), stock.getCost(), stock.getTime());
+                if (stockFound.isEmpty()) {
+                    stockRepository.save(stock);
                 }
             }
         };

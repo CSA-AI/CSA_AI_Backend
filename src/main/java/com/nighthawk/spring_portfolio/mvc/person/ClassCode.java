@@ -89,9 +89,29 @@ public class ClassCode {
         c1.setTotalAccountValue(0);
         c1.setBuyingPower(0);
 
+        ClassCode c2 = new ClassCode();
+        c2.setClassCode("CSA-AI");
+        c2.setClassName("CSA-AI");
+        c2.setEmail("test@gmail.com");
+        c2.setTotalAccountValue(100000);
+        c2.setBuyingPower(100000);
+
+        ClassCode c3 = new ClassCode();
+        c3.setClassCode("AGY3T7");
+        c3.setClassName("Math101");
+        c3.setEmail("teacher@gmail.com");
+        c3.setTotalAccountValue(0);
+        c3.setBuyingPower(0);
+
+        ClassCode c4 = new ClassCode();
+        c4.setClassCode("AGY3T7");
+        c4.setClassName("Math101");
+        c4.setEmail("test@gmail.com");
+        c4.setTotalAccountValue(100000);
+        c4.setBuyingPower(100000);
 
         // Array definition and data initialization
-        ClassCode codes[] = {c1};
+        ClassCode codes[] = {c1, c2, c3, c4};
         return(codes);
     }
 
