@@ -118,6 +118,7 @@ public class Stock {
     // Initialize static test data 
     public static Stock[] init() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy'T'HH:mm:ss");
+        Map<String, Double> lastBuyPrice = new HashMap<>();
 
         // Example of class construction
         Stock s1 = new Stock();
@@ -130,6 +131,7 @@ public class Stock {
         s1.setOperation("buy");
         s1.setTotalCost(s1.calculateTotalCost());
         s1.setClassCode("CSA-AI");
+        lastBuyPrice.put(s1.getName(), s1.getCost());
 
         Stock s2 = new Stock();
         s2.setName("GOOGL");
@@ -141,6 +143,7 @@ public class Stock {
         s2.setOperation("buy");
         s2.setTotalCost(s2.calculateTotalCost());
         s2.setClassCode("CSA-AI");
+        lastBuyPrice.put(s2.getName(), s2.getCost());
 
         Stock s3 = new Stock();
         s3.setName("MSFT");
@@ -152,6 +155,7 @@ public class Stock {
         s3.setOperation("buy");
         s3.setTotalCost(s3.calculateTotalCost());
         s3.setClassCode("CSA-AI");
+        lastBuyPrice.put(s3.getName(), s3.getCost());
 
         Stock s4 = new Stock();
         s4.setName("AMZN");
@@ -163,6 +167,7 @@ public class Stock {
         s4.setOperation("buy");
         s4.setTotalCost(s4.calculateTotalCost());
         s4.setClassCode("CSA-AI");
+        lastBuyPrice.put(s4.getName(), s4.getCost());
 
         Stock s5 = new Stock();
         s5.setName("AAPL");
@@ -174,6 +179,7 @@ public class Stock {
         s5.setOperation("sell");
         s5.setTotalCost(s5.calculateTotalCost());
         s5.setClassCode("CSA-AI");
+        s5.setPercentChange(3.54);
 
         Stock s6 = new Stock();
         s6.setName("NFLX");
@@ -185,6 +191,7 @@ public class Stock {
         s6.setOperation("buy");
         s6.setTotalCost(s6.calculateTotalCost());
         s6.setClassCode("CSA-AI");
+        lastBuyPrice.put(s6.getName(), s6.getCost());
 
         Stock s7 = new Stock();
         s7.setName("FB");
@@ -196,6 +203,7 @@ public class Stock {
         s7.setOperation("buy");
         s7.setTotalCost(s7.calculateTotalCost());
         s7.setClassCode("CSA-AI");
+        lastBuyPrice.put(s7.getName(), s7.getCost());
 
         Stock s8 = new Stock();
         s8.setName("NFLX");
@@ -207,6 +215,7 @@ public class Stock {
         s8.setOperation("sell");
         s8.setTotalCost(s8.calculateTotalCost());
         s8.setClassCode("CSA-AI");
+        s8.setPercentChange(-2.872);
 
         Stock s9 = new Stock();
         s9.setName("NVDA");
@@ -218,6 +227,7 @@ public class Stock {
         s9.setOperation("buy");
         s9.setTotalCost(s9.calculateTotalCost());
         s9.setClassCode("CSA-AI");
+        lastBuyPrice.put(s9.getName(), s9.getCost());
 
         Stock s10 = new Stock();
         s10.setName("TSLA");
@@ -229,6 +239,7 @@ public class Stock {
         s10.setOperation("buy");
         s10.setTotalCost(s10.calculateTotalCost());
         s10.setClassCode("CSA-AI");
+        lastBuyPrice.put(s10.getName(), s10.getCost());
 
         Stock s11 = new Stock();
         s11.setName("NVDA");
@@ -240,6 +251,7 @@ public class Stock {
         s11.setOperation("sell");
         s11.setTotalCost(s11.calculateTotalCost());
         s11.setClassCode("CSA-AI");
+        s11.setPercentChange(-6.457);
 
         Stock s12 = new Stock();
         s12.setName("IBM");
@@ -251,6 +263,7 @@ public class Stock {
         s12.setOperation("buy");
         s12.setTotalCost(s12.calculateTotalCost());
         s12.setClassCode("AGY3T7");
+        lastBuyPrice.put(s12.getName(), s12.getCost());
 
         Stock s13 = new Stock();
         s13.setName("ORCL");
@@ -262,6 +275,7 @@ public class Stock {
         s13.setOperation("buy");
         s13.setTotalCost(s13.calculateTotalCost());
         s13.setClassCode("AGY3T7");
+        lastBuyPrice.put(s13.getName(), s13.getCost());
 
         Stock s14 = new Stock();
         s14.setName("AAPL");
@@ -273,6 +287,7 @@ public class Stock {
         s14.setOperation("sell");
         s14.setTotalCost(s14.calculateTotalCost());
         s14.setClassCode("AGY3T7");
+        s14.setPercentChange(8.246);
 
         Stock s15 = new Stock();
         s15.setName("GOOGL");
@@ -284,6 +299,7 @@ public class Stock {
         s15.setOperation("buy");
         s15.setTotalCost(s15.calculateTotalCost());
         s15.setClassCode("AGY3T7");
+        lastBuyPrice.put(s15.getName(), s15.getCost());
 
         Stock s16 = new Stock();
         s16.setName("MSFT");
@@ -295,6 +311,7 @@ public class Stock {
         s16.setOperation("buy");
         s16.setTotalCost(s16.calculateTotalCost());
         s16.setClassCode("AGY3T7");
+        lastBuyPrice.put(s16.getName(), s16.getCost());
 
         Stock s17 = new Stock();
         s17.setName("ORCL");
@@ -306,6 +323,7 @@ public class Stock {
         s17.setOperation("sell");
         s17.setTotalCost(s17.calculateTotalCost());
         s17.setClassCode("AGY3T7");
+        s17.setPercentChange(1.952);
 
         Stock s18 = new Stock();
         s18.setName("IBM");
@@ -317,6 +335,7 @@ public class Stock {
         s18.setOperation("sell");
         s18.setTotalCost(s18.calculateTotalCost());
         s18.setClassCode("AGY3T7");
+        s18.setPercentChange(6.584);
 
         Stock s19 = new Stock();
         s19.setName("TSLA");
@@ -328,6 +347,7 @@ public class Stock {
         s19.setOperation("buy");
         s19.setTotalCost(s19.calculateTotalCost());
         s19.setClassCode("AGY3T7");
+        lastBuyPrice.put(s19.getName(), s19.getCost());
 
         Stock s20 = new Stock();
         s20.setName("NFLX");
@@ -339,6 +359,7 @@ public class Stock {
         s20.setOperation("buy");
         s20.setTotalCost(s20.calculateTotalCost());
         s20.setClassCode("AGY3T7");
+        lastBuyPrice.put(s20.getName(), s20.getCost());
 
         Stock s21 = new Stock();
         s21.setName("FB");
@@ -350,6 +371,7 @@ public class Stock {
         s21.setOperation("sell");
         s21.setTotalCost(s21.calculateTotalCost());
         s21.setClassCode("AGY3T7");
+        s21.setPercentChange(-5.168);
 
         Stock s22 = new Stock();
         s22.setName("NVDA");
@@ -361,6 +383,7 @@ public class Stock {
         s22.setOperation("sell");
         s22.setTotalCost(s22.calculateTotalCost());
         s22.setClassCode("AGY3T7");
+        s22.setPercentChange(2.085);
 
         Stock[] stocks = { s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21, s22 };
         return stocks;
