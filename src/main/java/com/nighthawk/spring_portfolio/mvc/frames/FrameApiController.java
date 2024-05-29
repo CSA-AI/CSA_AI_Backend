@@ -48,7 +48,7 @@ public class FrameApiController {
                 for (List<List<Integer>> mnistData : mnistDataList) {
                     postMnistData(mnistData);
 
-                    // Store MNIST data in the database
+                    // store MNIST data in the database
                     Frame frame = new Frame();
                     frame.setMnistData(mnistData.toString()); // Converting list of lists to string for database storage
                     frameJpaRepository.save(frame);
