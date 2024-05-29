@@ -45,7 +45,7 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     private String rating;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "json")
     private Map<String, Map<String, Object>> stats = new HashMap<>();
 
     @ManyToOne
