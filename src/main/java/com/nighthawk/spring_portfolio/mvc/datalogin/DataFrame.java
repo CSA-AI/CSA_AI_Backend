@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class DataFrame {
 
     private static final String VIDEO_DIR = "src/main/java/com/nighthawk/spring_portfolio/mvc/datalogin/videos/";
-    private static final String CSV_FILE = "src/main/java/com/nighthawk/spring_portfolio/mvc/datalogin/hand_login_train.csv";
+    private static final String CSV_DIR = "src/main/java/com/nighthawk/spring_portfolio/mvc/datalogin/csv/";
     private static final String PROCESSED_VIDEOS_FILE = "src/main/java/com/nighthawk/spring_portfolio/mvc/datalogin/processed_videos.txt";
 
     public static void processVideosInFolder() {
@@ -27,19 +27,18 @@ public class DataFrame {
         File[] listOfFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp4"));
 
         if (listOfFiles != null) {
-            int videoId = 0;
-            for (File file : listOfFiles) {
+            for (int videoId = 0; videoId < listOfFiles.length; videoId++) {
+                File file = listOfFiles[videoId];
                 if (!processedVideos.contains(file.getName())) {
-                    processVideoFile(file.getAbsolutePath(), videoId);
+                    processVideoFile(file.getAbsolutePath(), file.getName());
                     processedVideos.add(file.getName());
                     saveProcessedVideo(file.getName());
-                    videoId++;
                 }
             }
         }
     }
 
-    private static void processVideoFile(String videoFilePath, int videoId) {
+    private static void processVideoFile(String videoFilePath, String videoFileName) {
         FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videoFilePath);
 
         try {
@@ -62,7 +61,7 @@ public class DataFrame {
             }
 
             grabber.stop();
-            appendToCSV(allFramesData, videoId);
+            appendToCSV(allFramesData, videoFileName);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -87,19 +86,32 @@ public class DataFrame {
         return mnistData;
     }
 
-    private static void appendToCSV(List<List<List<Integer>>> allFramesData, int videoId) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(CSV_FILE, true));
-        
-        for (List<List<Integer>> frameData : allFramesData) {
-            // Flattening all rows of the frame into one line and adding a label
-            String line = videoId + "," + frameData.stream()
-                    .flatMap(List::stream) // Flatten the lists of rows into a single list
-                    .map(Object::toString)
-                    .collect(Collectors.joining(","));
-            writer.write(line);
-            writer.newLine();
+    private static void appendToCSV(List<List<List<Integer>>> allFramesData, String videoFileName) throws IOException {
+        String csvFileName = videoFileName.replace(".mp4", ".csv");
+        File csvFile = new File(CSV_DIR + csvFileName);
+
+        // Check if the CSV file already exists
+        boolean fileExists = csvFile.exists();
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFile, true))) {
+            // If the file doesn't exist, write a header or an initial message
+            if (!fileExists) {
+                writer.write("frame_number,data");
+                writer.newLine();
+            }
+    
+            int frameNumber = 0;
+            for (List<List<Integer>> frameData : allFramesData) {
+                // Flattening all rows of the frame into one line and adding a label
+                String line = frameNumber + "," + frameData.stream()
+                        .flatMap(List::stream) // Flatten the lists of rows into a single list
+                        .map(Object::toString)
+                        .collect(Collectors.joining(","));
+                writer.write(line);
+                writer.newLine();
+                frameNumber++;
+            }
         }
-        writer.close();
     }
 
     private static Set<String> loadProcessedVideos() {
@@ -125,6 +137,7 @@ public class DataFrame {
     }
 
     public static void main(String[] args) {
+        System.setProperty("java.awt.headless", "true");
         processVideosInFolder();
     }
 }
