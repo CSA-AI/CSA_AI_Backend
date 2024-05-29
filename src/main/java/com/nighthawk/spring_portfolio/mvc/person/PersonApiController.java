@@ -1,34 +1,20 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.bind.DatatypeConverter;
-
+import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
+import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObjectJpaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/person")
@@ -42,6 +28,9 @@ public class PersonApiController {
 
     @Autowired
     private ClassCodeJpaRepository classCodeRepository;
+
+    @Autowired
+    private PerformanceObjectJpaRepository performanceRepository;
 
     public static Set<String> usedClassCodes = new HashSet<>();
 
@@ -80,7 +69,24 @@ public class PersonApiController {
         }
     }
 
-    // In your controller class
+    // Create PerformanceObject for a Person
+    @PostMapping("/{personId}/performance")
+    public ResponseEntity<Object> createPerformance(@PathVariable Long personId, @RequestBody PerformanceObject performanceRequest) {
+        Optional<Person> optionalPerson = repository.findById(personId);
+        if (optionalPerson.isPresent()) {
+            Person person = optionalPerson.get();
+            performanceRequest.setPerson(person);
+            person.addPerformance(performanceRequest);
+            performanceRepository.save(performanceRequest);
+            repository.save(person);
+            return new ResponseEntity<>(performanceRequest, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    // Other endpoints...
+
     @PostMapping("/createCode")
     public ResponseEntity<Object> createCode(@RequestBody CreateCodeRequest request) {
         Person person = repository.findByEmail(request.getEmail());
@@ -97,10 +103,9 @@ public class PersonApiController {
 
         String classCode = generateUniqueClassCode();
         ClassCode newCode = new ClassCode(classCode, request.getClassName(), request.getEmail(), 100000.00, 100000.00);
-        
-        // Set creator's email
+
         newCode.setEmail(request.getEmail());
-        
+
         person.addClassCode(newCode);
         classCodeRepository.save(newCode);
         personDetailsService.save(person);
@@ -137,7 +142,6 @@ public class PersonApiController {
             return new ResponseEntity<>(Map.of("error", "Class code not found"), HttpStatus.NOT_FOUND);
         }
 
-        // Get the class name from the class code entity
         String className = classCodeEntity.getClassName();
 
         ClassCode newCode = new ClassCode(request.getClassCode(), className, request.getEmail(), 100000.00, 100000.00);
@@ -155,14 +159,12 @@ public class PersonApiController {
         if (!codes.isEmpty()) {
             return new ResponseEntity<>(codes, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @GetMapping("/class/{classCode}/{email}")
     public ResponseEntity<ClassCode> getClassCodeByEmailAndClassCode(@PathVariable String classCode, @PathVariable String email) {
-        // Use classCode and email to fetch the data
-        // Assuming you have a method to fetch data based on classCode and email from your repository
         ClassCode classData = classCodeRepository.findByClassCodeAndEmail(classCode, email);
         if (classData != null) {
             return new ResponseEntity<>(classData, HttpStatus.OK);
@@ -170,18 +172,6 @@ public class PersonApiController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-    // @GetMapping("/teachers/{classCode}")
-    // public ResponseEntity<Set<Person>> getTeachersByClassCode(@PathVariable String classCode) {
-    //     // Find teachers and admins by class code
-    //     List<Person> teachersAndAdmins = repository.findTeachersAndAdminsByClassCode(classCode, "teacher");
-
-    //     if (!teachersAndAdmins.isEmpty()) {
-    //         return new ResponseEntity<>(new HashSet<>(teachersAndAdmins), HttpStatus.OK);
-    //     } else {
-    //         return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No teachers or admins found for the given class code
-    //     }
-    // }
 
     @PostMapping(value = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> personSearch(@RequestBody final Map<String, String> map) {

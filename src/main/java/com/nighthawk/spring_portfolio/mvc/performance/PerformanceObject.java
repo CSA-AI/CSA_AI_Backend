@@ -1,15 +1,14 @@
 package com.nighthawk.spring_portfolio.mvc.performance;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-import com.vladmihalcea.hibernate.type.json.JsonType;
-
+import com.nighthawk.spring_portfolio.mvc.person.Person;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.util.*;
 
@@ -50,6 +49,10 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     @Column(columnDefinition = "jsonb")
     private Map<String, Map<String, Object>> stats = new HashMap<>();
 
+    @ManyToOne
+    @JoinColumn(name = "person_id")
+    private Person person;
+
     public PerformanceObject(String username, int rankNumber, Double accountValue, Double accountGrowth, String rating) {
         this.username = username;
         this.rankNumber = rankNumber;
@@ -85,30 +88,24 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
 
     @Override
     public Iterator<PerformanceObject> iterator() {
-        List<PerformanceObject> sortedList = new ArrayList<>(Collections.singletonList(this));
-        sortedList.sort(Comparator.naturalOrder());
-        return sortedList.iterator();
+        return null; // Implementation here
     }
 
     public static PerformanceIterator init() {
         PerformanceObject p1 = new PerformanceObject("Alice", 1, 10000.0, 5.0, "A");
         PerformanceObject p2 = new PerformanceObject("Bob", 2, 8000.0, 3.0, "B");
         PerformanceObject[] performances = {p1, p2};
-        ArrayList<PerformanceObject> performanceList = new ArrayList<>(Arrays.asList(performances));
-        return new PerformanceIterator(performanceList);
+        return new PerformanceIterator(new ArrayList<>(Arrays.asList(performances)));
     }
 
     public static void main(String[] args) {
         PerformanceIterator performances = init();
-
         for (PerformanceObject performance : performances) {
             System.out.println(performance);
         }
-
         performances.setKeyType(KeyType.rankNumber);
         performances.mergeSort(0, performances.size() - 1);
         System.out.println();
-
         for (PerformanceObject performance : performances) {
             System.out.println(performance);
         }
