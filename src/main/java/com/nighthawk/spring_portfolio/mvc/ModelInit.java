@@ -63,8 +63,11 @@ public class ModelInit {
                     
                 }
             }
-            for (int i = 1; i <= 3 && i < personArray.length; i++) {
+            for (int i = 1; i <= 2 && i < personArray.length; i++) {
                 personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_ADMIN");
+            }
+            for (int i = 4; i <= 4 && i < personArray.length; i++) {
+                personService.addRoleToPerson(personArray[i].getEmail(), "ROLE_TEACHER");
             }
 
             ClassCode existingClassCode = classCodeRepository.findTopByClassCode("CSA-AI");

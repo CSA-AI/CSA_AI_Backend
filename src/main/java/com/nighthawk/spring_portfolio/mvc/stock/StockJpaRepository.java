@@ -20,6 +20,7 @@ public interface StockJpaRepository extends JpaRepository<Stock, Long> {
     // List<Stock> findByEmailAndTimeBetween(String email, LocalDateTime startTime, LocalDateTime endTime);
 
     List<Stock> findByEmailOrderByTimeDesc(String email);
+    List<Stock> findByEmailAndClassCodeOrderByTimeDesc(String email, String classCode);
 
     Stock findFirstByNameAndOperationOrderByTimeDesc(String name, String operation);
 

@@ -234,4 +234,38 @@ public class StockApiController {
         return new ResponseEntity<>(positiveTickers, HttpStatus.OK);
     }
 
+    @GetMapping("/tickers/{email}/{classCode}")
+    public ResponseEntity<List<String>> getTickersByEmailAndClassCode(@PathVariable String email, @PathVariable String classCode) {
+        List<Stock> trades = repository.findByEmailAndClassCodeOrderByTimeDesc(email, classCode);
+        if (trades.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);  // No trades found for the given email and class code
+        }
+
+        // Map to keep track of the net shares for each ticker
+        Map<String, Integer> tickerSharesMap = new HashMap<>();
+
+        // Aggregate shares for each ticker
+        for (Stock trade : trades) {
+            String ticker = trade.getName();
+            int shares = trade.getShares();
+            String operation = trade.getOperation();
+            int currentShares = tickerSharesMap.getOrDefault(ticker, 0);
+            if (operation.equals("buy")) {
+                tickerSharesMap.put(ticker, currentShares + shares);
+            } else {
+                tickerSharesMap.put(ticker, currentShares - shares);
+            }
+        }
+
+        // List to hold tickers with positive net shares
+        List<String> positiveTickers = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : tickerSharesMap.entrySet()) {
+            if (entry.getValue() > 0) {
+                positiveTickers.add(entry.getKey());
+            }
+        }
+
+        return new ResponseEntity<>(positiveTickers, HttpStatus.OK);
+    }
+
 }

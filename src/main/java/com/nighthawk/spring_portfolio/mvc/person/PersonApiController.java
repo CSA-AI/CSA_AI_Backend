@@ -171,6 +171,42 @@ public class PersonApiController {
         }
     }
 
+    @PutMapping("/adjustAccountValue")
+    public ResponseEntity<Object> adjustAccountValue(@RequestBody AdjustAccountValueRequest request) {
+        Person person = repository.findByEmail(request.getEmail());
+        if (person == null) {
+            return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        }
+
+        ClassCode classCode = classCodeRepository.findByClassCodeAndEmail(request.getClassCode(), request.getEmail());
+        if (classCode == null) {
+            return new ResponseEntity<>(Map.of("error", "Class code not found"), HttpStatus.NOT_FOUND);
+        }
+
+        classCode.setTotalAccountValue(request.getNewAccountValue());
+        classCodeRepository.save(classCode);
+
+        return new ResponseEntity<>(Map.of("message", "Account value updated successfully"), HttpStatus.OK);
+    }
+
+    @PutMapping("/adjustBuyingPower")
+    public ResponseEntity<Object> adjustBuyingPower(@RequestBody AdjustBuyingPowerRequest request) {
+        Person person = repository.findByEmail(request.getEmail());
+        if (person == null) {
+            return new ResponseEntity<>(Map.of("error", "Person not found"), HttpStatus.NOT_FOUND);
+        }
+
+        ClassCode classCode = classCodeRepository.findByClassCodeAndEmail(request.getClassCode(), request.getEmail());
+        if (classCode == null) {
+            return new ResponseEntity<>(Map.of("error", "Class code not found"), HttpStatus.NOT_FOUND);
+        }
+
+        classCode.setBuyingPower(request.getNewBuyingPower());
+        classCodeRepository.save(classCode);
+
+        return new ResponseEntity<>(Map.of("message", "Buying power updated successfully"), HttpStatus.OK);
+    }
+
     // @GetMapping("/teachers/{classCode}")
     // public ResponseEntity<Set<Person>> getTeachersByClassCode(@PathVariable String classCode) {
     //     // Find teachers and admins by class code
