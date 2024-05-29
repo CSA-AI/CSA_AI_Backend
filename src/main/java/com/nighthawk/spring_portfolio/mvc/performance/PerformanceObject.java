@@ -18,7 +18,6 @@ import java.util.*;
 @NoArgsConstructor
 @Entity
 @EqualsAndHashCode(callSuper = false)
-@Convert(converter = JsonType.class)
 public class PerformanceObject extends PerformanceCollectable implements Iterable<PerformanceObject> {
     public enum KeyType implements KeyTypes {rankNumber, accountValue, accountGrowth}
     public static KeyTypes key = KeyType.accountGrowth;
@@ -91,7 +90,6 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
         return sortedList.iterator();
     }
 
-    // Initialize static test data
     public static PerformanceIterator init() {
         PerformanceObject p1 = new PerformanceObject("Alice", 1, 10000.0, 5.0, "A");
         PerformanceObject p2 = new PerformanceObject("Bob", 2, 8000.0, 3.0, "B");
