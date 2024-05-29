@@ -240,7 +240,7 @@ public class FrameApiController {
     }
 
     private void postMnistData(List<List<Integer>> mnistData) {
-        String url = "https://csa-ai-flask.stu.nighthawkcodingsociety.com/smnist";
+        String url = "https://csa-ai.stu.nighthawkcodingsociety.com/smnist";
         restTemplate.postForObject(url, mnistData, String.class);
     }
 
