@@ -8,6 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.util.*;
 
@@ -19,6 +21,7 @@ import java.util.*;
 public class PerformanceObject extends PerformanceCollectable implements Iterable<PerformanceObject> {
     public enum KeyType implements KeyTypes {rankNumber, accountValue, accountGrowth}
     public static KeyTypes key = KeyType.accountGrowth;
+
 
     public void setOrder(KeyTypes key) {PerformanceObject.key = key;}
 
@@ -60,6 +63,7 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
         this.rating = rating;
     }
 
+    
     @Override
     public String toString() {
         if (KeyType.accountGrowth.equals(PerformanceObject.key)) {
@@ -76,7 +80,10 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     public int compareTo(PerformanceCollectable performanceObj) {
         if (KeyType.accountGrowth.equals(PerformanceObject.key)) {
             return Double.compare(this.accountGrowth, performanceObj.getAccountGrowth());
-        }
+        } 
+        // if (KeyType.accountValue.equals(PerformanceObject.key)) {
+        //     return Double.compare(this.accountValue, performanceObj.getAccountValue());
+        // }
         return this.toString().compareTo(performanceObj.toString());
     }
 
@@ -89,24 +96,7 @@ public class PerformanceObject extends PerformanceCollectable implements Iterabl
     public Iterator<PerformanceObject> iterator() {
         return null; // Implementation here
     }
-
-    public static PerformanceIterator init() {
-        PerformanceObject p1 = new PerformanceObject("Alice", 1, 10000.0, 5.0, "A");
-        PerformanceObject p2 = new PerformanceObject("Bob", 2, 8000.0, 3.0, "B");
-        PerformanceObject[] performances = {p1, p2};
-        return new PerformanceIterator(new ArrayList<>(Arrays.asList(performances)));
-    }
-
     public static void main(String[] args) {
-        PerformanceIterator performances = init();
-        for (PerformanceObject performance : performances) {
-            System.out.println(performance);
-        }
-        performances.setKeyType(KeyType.rankNumber);
-        performances.mergeSort(0, performances.size() - 1);
-        System.out.println();
-        for (PerformanceObject performance : performances) {
-            System.out.println(performance);
-        }
+        
     }
 }

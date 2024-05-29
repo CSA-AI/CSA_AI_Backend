@@ -1,6 +1,5 @@
 package com.nighthawk.spring_portfolio.mvc.person;
 
-import com.nighthawk.spring_portfolio.mvc.performance.PerformanceObject;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
