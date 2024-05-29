@@ -194,7 +194,7 @@ public class Stock {
         lastBuyPrice.put(s6.getName(), s6.getCost());
 
         Stock s7 = new Stock();
-        s7.setName("FB");
+        s7.setName("META");
         s7.setCost(370.15);
         s7.setShares(18);
         LocalDateTime d7 = LocalDateTime.parse("07-25-2024T13:45:00", formatter);
@@ -362,7 +362,7 @@ public class Stock {
         lastBuyPrice.put(s20.getName(), s20.getCost());
 
         Stock s21 = new Stock();
-        s21.setName("FB");
+        s21.setName("META");
         s21.setCost(375.00);
         s21.setShares(20);
         LocalDateTime d21 = LocalDateTime.parse("10-01-2024T09:15:00", formatter);

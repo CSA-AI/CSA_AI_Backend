@@ -92,7 +92,7 @@ public class Person {
     }
     */
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "json")
+    @Column(columnDefinition = "jsonb")
     private Map<String,Map<String, Object>> stats = new HashMap<>(); 
     
     @ManyToMany(fetch = EAGER)
