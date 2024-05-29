@@ -238,6 +238,4 @@ public class StockObject extends StockCollectable implements Iterable<StockObjec
         }
     }
 
-    
-
 }
