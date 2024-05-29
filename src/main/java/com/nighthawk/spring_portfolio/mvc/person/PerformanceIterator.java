@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.performance;
+package com.nighthawk.spring_portfolio.mvc.person;
 
 import java.util.ArrayList;
 import java.util.Iterator;

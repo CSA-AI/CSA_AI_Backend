@@ -1,6 +1,5 @@
-package com.nighthawk.spring_portfolio.mvc.performance;
+package com.nighthawk.spring_portfolio.mvc.person;
 
-import com.nighthawk.spring_portfolio.mvc.person.Person;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;

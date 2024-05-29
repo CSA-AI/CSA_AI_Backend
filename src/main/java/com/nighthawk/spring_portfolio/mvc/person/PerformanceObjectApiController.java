@@ -1,4 +1,4 @@
-package com.nighthawk.spring_portfolio.mvc.performance;
+package com.nighthawk.spring_portfolio.mvc.person;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
