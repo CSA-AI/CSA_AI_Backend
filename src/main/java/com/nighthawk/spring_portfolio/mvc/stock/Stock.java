@@ -2,6 +2,9 @@ package com.nighthawk.spring_portfolio.mvc.stock;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import static org.junit.Assert.fail;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -49,6 +52,7 @@ public class Stock {
 
     // automatic unique identifier for Person record
     @Id
+    @Column(unique=true)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
